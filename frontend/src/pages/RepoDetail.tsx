@@ -9,9 +9,9 @@ import { Header } from "@/components/ui/header";
 import { SwitchConfigDialog } from "@/components/repo/SwitchConfigDialog";
 import { RepoMcpDialog } from "@/components/repo/RepoMcpDialog";
 import { SourceControlPanel } from "@/components/source-control";
-import { useCreateSession } from "@/hooks/useOpenCode";
+import { useCreateSession } from "@/hooks/useClient";
 import { useSSE } from "@/hooks/useSSE";
-import { OPENCODE_API_ENDPOINT } from "@/config";
+import { COSTRICT_API_ENDPOINT } from "@/config";
 import { useSwipeBack } from "@/hooks/useMobile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,13 +57,13 @@ export function RepoDetail() {
     staleTime: 60000,
   });
 
-  const opcodeUrl = OPENCODE_API_ENDPOINT;
+  const coststrictUrl = COSTRICT_API_ENDPOINT;
   
   const repoDirectory = repo?.fullPath;
 
-  useSSE(opcodeUrl, repoDirectory);
+  useSSE(coststrictUrl, repoDirectory);
 
-  const createSessionMutation = useCreateSession(opcodeUrl, repoDirectory);
+  const createSessionMutation = useCreateSession(coststrictUrl, repoDirectory);
 
   const handleCreateSession = async (options?: {
     agentSlug?: string;
@@ -205,7 +205,7 @@ export function RepoDetail() {
         </Header.MobileDropdown>
         <Button
           onClick={() => handleCreateSession()}
-          disabled={!opcodeUrl || createSessionMutation.isPending}
+          disabled={!coststrictUrl || createSessionMutation.isPending}
           size="sm"
           className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 hover:scale-105"
         >
@@ -216,9 +216,9 @@ export function RepoDetail() {
     </Header>
 
       <div className="flex-1 flex flex-col min-h-0">
-        {opcodeUrl && repoDirectory && (
+        {coststrictUrl && repoDirectory && (
           <SessionList
-            opcodeUrl={opcodeUrl}
+            coststrictUrl={coststrictUrl}
             directory={repoDirectory}
             onSelectSession={handleSelectSession}
           />

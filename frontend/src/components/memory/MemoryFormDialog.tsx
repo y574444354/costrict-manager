@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCreateMemory, useUpdateMemory } from '@/hooks/useMemories'
-import type { Memory, CreateMemoryRequest, UpdateMemoryRequest } from '@opencode-manager/shared/types'
+import type { Memory, CreateMemoryRequest, UpdateMemoryRequest } from '@costrict-manager/shared/types'
 import {
   Dialog,
   DialogContent,

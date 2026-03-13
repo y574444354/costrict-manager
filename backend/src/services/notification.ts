@@ -2,15 +2,15 @@ import { Database } from "bun:sqlite";
 import webpush from "web-push";
 import { logger } from "../utils/logger";
 import type { PushSubscriptionRecord } from "../types/settings";
-import type { PushNotificationPayload } from "@opencode-manager/shared/types";
+import type { PushNotificationPayload } from "@costrict-manager/shared/types";
 import {
   NotificationEventType,
   DEFAULT_NOTIFICATION_PREFERENCES,
-} from "@opencode-manager/shared/schemas";
+} from "@costrict-manager/shared/schemas";
 import { SettingsService } from "./settings";
 import { sseAggregator, type SSEEvent } from "./sse-aggregator";
 import { getRepoByLocalPath } from "../db/queries";
-import { getReposPath } from "@opencode-manager/shared/config/env";
+import { getReposPath } from "@costrict-manager/shared/config/env";
 import path from "path";
 
 interface VapidConfig {
@@ -26,7 +26,7 @@ const EVENT_CONFIG: Record<
   [NotificationEventType.PERMISSION_ASKED]: {
     preferencesKey: "permissionAsked",
     title: "Permission Required",
-    bodyFn: () => "OpenCode needs your approval to continue",
+    bodyFn: () => "CoStrict needs your approval to continue",
   },
   [NotificationEventType.QUESTION_ASKED]: {
     preferencesKey: "questionAsked",

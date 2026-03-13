@@ -3,25 +3,25 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '@/components/ui/dialog'
-import type { OpenCodeConfig } from '@/api/types/settings'
+import type { CoStrictConfig } from '@/api/types/settings'
 import { parseJsonc } from '@/lib/jsonc'
 import { FetchError } from '@/api/fetchWrapper'
 
-interface OpenCodeConfigEditorProps {
-  config: OpenCodeConfig | null
+interface ConfigEditorProps {
+  config: CoStrictConfig | null
   isOpen: boolean
   onClose: () => void
   onUpdate: (content: string) => Promise<void>
   isUpdating: boolean
 }
 
-export function OpenCodeConfigEditor({
+export function ConfigEditor({
   config,
   isOpen,
   onClose,
   onUpdate,
   isUpdating
-}: OpenCodeConfigEditorProps) {
+}: ConfigEditorProps) {
   const [editConfigContent, setEditConfigContent] = useState('')
   const [editError, setEditError] = useState('')
   const [editErrorLine, setEditErrorLine] = useState<number | null>(null)

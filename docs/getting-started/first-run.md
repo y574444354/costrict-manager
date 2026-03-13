@@ -1,6 +1,6 @@
 # First Run Setup
 
-On your first visit to OpenCode Manager, you'll complete a guided setup process.
+On your first visit to CoStrict Manager, you'll complete a guided setup process.
 
 ## Interactive Setup
 

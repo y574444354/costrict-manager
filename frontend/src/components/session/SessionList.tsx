@@ -1,24 +1,24 @@
 import { useState, useMemo } from "react";
-import { useSessions, useDeleteSession } from "@/hooks/useOpenCode";
+import { useSessions, useDeleteSession } from "@/hooks/useClient";
 import { ListToolbar } from "@/components/ui/list-toolbar";
 import { DeleteSessionDialog } from "./DeleteSessionDialog";
 import { SessionCard } from "./SessionCard";
 
 interface SessionListProps {
-  opcodeUrl: string;
+  coststrictUrl: string;
   directory?: string;
   activeSessionID?: string;
   onSelectSession: (sessionID: string) => void;
 }
 
 export const SessionList = ({
-  opcodeUrl,
+  coststrictUrl,
   directory,
   activeSessionID,
   onSelectSession,
 }: SessionListProps) => {
-  const { data: sessions, isLoading } = useSessions(opcodeUrl, directory);
-  const deleteSession = useDeleteSession(opcodeUrl, directory);
+  const { data: sessions, isLoading } = useSessions(coststrictUrl, directory);
+  const deleteSession = useDeleteSession(coststrictUrl, directory);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<
     string | string[] | null

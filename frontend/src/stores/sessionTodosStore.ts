@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 
 type Todo = components['schemas']['Todo']
 

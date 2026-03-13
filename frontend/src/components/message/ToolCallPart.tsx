@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 import { useSettings } from '@/hooks/useSettings'
 import { useUserBash } from '@/stores/userBashStore'
 import { usePermissions, useQuestions } from '@/contexts/EventContext'

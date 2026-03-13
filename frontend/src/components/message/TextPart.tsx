@@ -6,7 +6,7 @@ import rehypeRaw from 'rehype-raw'
 import mermaid from 'mermaid'
 import { Maximize2, X, AlertCircle } from 'lucide-react'
 import { CopyButton } from '@/components/ui/copy-button'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 import { useTheme } from '@/hooks/useTheme'
 import 'highlight.js/styles/github-dark.css'
 

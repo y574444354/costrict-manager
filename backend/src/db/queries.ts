@@ -1,6 +1,6 @@
 import type { Database } from 'bun:sqlite'
 import type { Repo, CreateRepoInput } from '../types/repo'
-import { getReposPath } from '@opencode-manager/shared/config/env'
+import { getReposPath } from '@costrict-manager/shared/config/env'
 import { getErrorMessage } from '../utils/error-utils'
 import path from 'path'
 

@@ -4,9 +4,9 @@ vi.mock('bun:sqlite', () => ({
   Database: vi.fn(),
 }))
 
-vi.mock('@opencode-manager/shared/config/env', () => ({
+vi.mock('@costrict-manager/shared/config/env', () => ({
   getWorkspacePath: vi.fn(() => '/test/workspace'),
-  getOpenCodeConfigFilePath: vi.fn(() => '/test/workspace/.config/opencode.json'),
+  getCoStrictConfigFilePath: vi.fn(() => '/test/workspace/.config/costrict.json'),
   getReposPath: vi.fn(() => '/test/workspace/repos'),
   getAgentsMdPath: vi.fn(() => '/test/workspace/AGENTS.md'),
   getDatabasePath: vi.fn(() => ':memory:'),
@@ -15,7 +15,7 @@ vi.mock('@opencode-manager/shared/config/env', () => ({
     SERVER: { PORT: 5003, HOST: '0.0.0.0', NODE_ENV: 'test' },
     AUTH: { TRUSTED_ORIGINS: 'http://localhost:5173', SECRET: 'test-secret-for-encryption-key-32c' },
     WORKSPACE: { BASE_PATH: '/test/workspace', REPOS_DIR: 'repos', CONFIG_DIR: 'config', AUTH_FILE: 'auth.json' },
-    OPENCODE: { PORT: 5551, HOST: '127.0.0.1' },
+    COSTRICT: { PORT: 5551, HOST: '127.0.0.1' },
     DATABASE: { PATH: ':memory:' },
     FILE_LIMITS: {
       MAX_SIZE_BYTES: 1024 * 1024,
@@ -62,11 +62,11 @@ const execSyncMock = execSync as any
 
 // Reset singleton before any tests run to clear any polluted state from previous test files
 beforeAll(async () => {
-  const { OpenCodeServerManager } = await import('../../src/services/opencode-single-server')
-  OpenCodeServerManager.resetInstance()
+  const { CoStrictServerManager } = await import('../../src/services/costrict-server')
+  CoStrictServerManager.resetInstance()
 })
 
-describe('OpenCodeServerManager - reinitializeBinDirectory', () => {
+describe('CoStrictServerManager - reinitializeBinDirectory', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.WORKSPACE_PATH = '/test/workspace'
@@ -79,7 +79,7 @@ describe('OpenCodeServerManager - reinitializeBinDirectory', () => {
 
   describe('Success Cases', () => {
     it('should create directory and initialize when package.json does not exist', async () => {
-      const { opencodeServerManager } = await import('../../src/services/opencode-single-server')
+      const { costrictServerManager } = await import('../../src/services/costrict-server')
       const { logger } = await import('../../src/utils/logger')
       
       const enoentError = new Error('File not found') as NodeJS.ErrnoException
@@ -87,55 +87,55 @@ describe('OpenCodeServerManager - reinitializeBinDirectory', () => {
       accessMock.mockRejectedValue(enoentError)
       execSyncMock.mockReturnValue(Buffer.from('Success'))
 
-      await opencodeServerManager.reinitializeBinDirectory()
+      await costrictServerManager.reinitializeBinDirectory()
 
       expect(mkdirMock).toHaveBeenCalledWith(
-        '/test/workspace/.opencode/state/opencode/bin',
+        '/test/workspace/.costrict/state/costrict/bin',
         { recursive: true }
       )
       expect(execSyncMock).toHaveBeenCalledWith(
         'bun init -y',
         expect.objectContaining({
-          cwd: '/test/workspace/.opencode/state/opencode/bin',
+          cwd: '/test/workspace/.costrict/state/costrict/bin',
           stdio: 'inherit',
           timeout: 30000
         })
       )
-      expect(logger.info).toHaveBeenCalledWith('Reinitializing OpenCode bin directory')
-      expect(logger.info).toHaveBeenCalledWith('OpenCode bin directory initialized successfully')
+      expect(logger.info).toHaveBeenCalledWith('Reinitializing CoStrict bin directory')
+      expect(logger.info).toHaveBeenCalledWith('CoStrict bin directory initialized successfully')
     })
 
     it('should skip initialization when package.json already exists', async () => {
-      const { opencodeServerManager } = await import('../../src/services/opencode-single-server')
+      const { costrictServerManager } = await import('../../src/services/costrict-server')
       const { logger } = await import('../../src/utils/logger')
       
       accessMock.mockResolvedValue(undefined)
 
-      await opencodeServerManager.reinitializeBinDirectory()
+      await costrictServerManager.reinitializeBinDirectory()
 
       expect(mkdirMock).toHaveBeenCalledWith(
-        '/test/workspace/.opencode/state/opencode/bin',
+        '/test/workspace/.costrict/state/costrict/bin',
         { recursive: true }
       )
       expect(execSyncMock).not.toHaveBeenCalled()
-      expect(logger.info).toHaveBeenCalledWith('Reinitializing OpenCode bin directory')
+      expect(logger.info).toHaveBeenCalledWith('Reinitializing CoStrict bin directory')
     })
 
     it('should log reinitialization message', async () => {
-      const { opencodeServerManager } = await import('../../src/services/opencode-single-server')
+      const { costrictServerManager } = await import('../../src/services/costrict-server')
       const { logger } = await import('../../src/utils/logger')
       
       accessMock.mockResolvedValue(undefined)
 
-      await opencodeServerManager.reinitializeBinDirectory()
+      await costrictServerManager.reinitializeBinDirectory()
 
-      expect(logger.info).toHaveBeenCalledWith('Reinitializing OpenCode bin directory')
+      expect(logger.info).toHaveBeenCalledWith('Reinitializing CoStrict bin directory')
     })
   })
 
   describe('Error Handling', () => {
     it('should handle bun init failure gracefully', async () => {
-      const { opencodeServerManager } = await import('../../src/services/opencode-single-server')
+      const { costrictServerManager } = await import('../../src/services/costrict-server')
       const { logger } = await import('../../src/utils/logger')
       
       const enoentError = new Error('Not found') as NodeJS.ErrnoException
@@ -145,25 +145,25 @@ describe('OpenCodeServerManager - reinitializeBinDirectory', () => {
         throw new Error('bun init failed')
       })
 
-      await opencodeServerManager.reinitializeBinDirectory()
+      await costrictServerManager.reinitializeBinDirectory()
 
       expect(logger.error).toHaveBeenCalledWith('bun init failed:', expect.any(Error))
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to initialize OpenCode bin directory:',
+        'Failed to initialize CoStrict bin directory:',
         expect.any(Error)
       )
     })
 
     it('should handle directory creation failure gracefully', async () => {
-      const { opencodeServerManager } = await import('../../src/services/opencode-single-server')
+      const { costrictServerManager } = await import('../../src/services/costrict-server')
       const { logger } = await import('../../src/utils/logger')
       
       mkdirMock.mockRejectedValue(new Error('Permission denied'))
 
-      await opencodeServerManager.reinitializeBinDirectory()
+      await costrictServerManager.reinitializeBinDirectory()
 
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to initialize OpenCode bin directory:',
+        'Failed to initialize CoStrict bin directory:',
         expect.any(Error)
       )
     })
@@ -171,23 +171,23 @@ describe('OpenCodeServerManager - reinitializeBinDirectory', () => {
 
   describe('Edge Cases', () => {
     it('should handle fs.access throwing non-ENOENT error gracefully', async () => {
-      const { opencodeServerManager } = await import('../../src/services/opencode-single-server')
+      const { costrictServerManager } = await import('../../src/services/costrict-server')
       const { logger } = await import('../../src/utils/logger')
       
       mkdirMock.mockResolvedValue(undefined)
       accessMock.mockRejectedValue(new Error('Permission denied'))
 
-      await opencodeServerManager.reinitializeBinDirectory()
+      await costrictServerManager.reinitializeBinDirectory()
 
       expect(execSyncMock).not.toHaveBeenCalled()
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to initialize OpenCode bin directory:',
+        'Failed to initialize CoStrict bin directory:',
         expect.any(Error)
       )
     })
 
     it('should handle timeout during bun init', async () => {
-      const { opencodeServerManager } = await import('../../src/services/opencode-single-server')
+      const { costrictServerManager } = await import('../../src/services/costrict-server')
       const { logger } = await import('../../src/utils/logger')
       
       mkdirMock.mockResolvedValue(undefined)
@@ -200,11 +200,11 @@ describe('OpenCodeServerManager - reinitializeBinDirectory', () => {
         throw error
       })
 
-      await opencodeServerManager.reinitializeBinDirectory()
+      await costrictServerManager.reinitializeBinDirectory()
 
       expect(logger.error).toHaveBeenCalledWith('bun init failed:', expect.any(Error))
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to initialize OpenCode bin directory:',
+        'Failed to initialize CoStrict bin directory:',
         expect.any(Error)
       )
     })

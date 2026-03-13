@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useLSPStatus } from './useLSPStatus'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import type { LspStatus } from '@/api/opencode'
-import { useOpenCodeClient } from './useOpenCode'
+import type { LspStatus } from '@/api/client'
+import { useOpenCodeClient } from './useClient'
 
 vi.mock('./useOpenCode')
 

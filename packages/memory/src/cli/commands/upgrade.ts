@@ -26,7 +26,7 @@ export async function run(_args: string[], _globalOpts: { dbPath?: string; proje
 
   const result = await performUpgrade(async (cacheDir, version) => {
     try {
-      execFileSync('bun', ['add', '--force', '--no-cache', '--exact', '--cwd', cacheDir, `@opencode-manager/memory@${version}`], {
+      execFileSync('bun', ['add', '--force', '--no-cache', '--exact', '--cwd', cacheDir, `@costrict-manager/memory@${version}`], {
         encoding: 'utf-8',
         stdio: 'pipe',
       })

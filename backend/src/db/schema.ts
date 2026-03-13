@@ -5,7 +5,7 @@ import { dirname } from 'path'
 import { migrate } from './migration-runner'
 import { allMigrations } from './migrations'
 
-export function initializeDatabase(dbPath: string = './data/opencode.db'): Database {
+export function initializeDatabase(dbPath: string = './data/costrict.db'): Database {
   mkdirSync(dirname(dbPath), { recursive: true })
   const db = new Database(dbPath)
 

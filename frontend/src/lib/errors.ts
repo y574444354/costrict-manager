@@ -1,6 +1,6 @@
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 
-export type OpenCodeError =
+export type CoStrictError =
   | components['schemas']['ProviderAuthError']
   | components['schemas']['UnknownError']
   | components['schemas']['MessageOutputLengthError']
@@ -15,7 +15,7 @@ export interface ParsedError {
   providerID?: string
 }
 
-export function parseOpenCodeError(error: OpenCodeError | undefined | null): ParsedError | null {
+export function parseCoStrictError(error: CoStrictError | undefined | null): ParsedError | null {
   if (!error) return null
 
   switch (error.name) {
@@ -86,7 +86,7 @@ export function parseNetworkError(error: unknown): ParsedError {
     if (error.message.includes('502') || error.message.includes('Bad Gateway')) {
       return {
         title: 'Server Unavailable',
-        message: 'The OpenCode server is not responding. It may need to be restarted.',
+        message: 'The CoStrict server is not responding. It may need to be restarted.',
         isRetryable: true,
       }
     }
@@ -105,7 +105,7 @@ export function parseNetworkError(error: unknown): ParsedError {
   }
 }
 
-export function getErrorMessage(error: OpenCodeError | undefined | null): string {
-  const parsed = parseOpenCodeError(error)
+export function getErrorMessage(error: CoStrictError | undefined | null): string {
+  const parsed = parseCoStrictError(error)
   return parsed ? `${parsed.title}: ${parsed.message}` : ''
 }

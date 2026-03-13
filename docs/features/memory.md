@@ -1,21 +1,21 @@
 # Memory Plugin
 
-`@opencode-manager/memory` is an **optional** OpenCode plugin that stores and recalls project knowledge across sessions using vector embeddings and semantic search.
+`@costrict-manager/memory` is an **optional** CoStrict plugin that stores and recalls project knowledge across sessions using vector embeddings and semantic search.
 
-[![npm](https://img.shields.io/npm/v/@opencode-manager/memory)](https://www.npmjs.com/package/@opencode-manager/memory)
+[![npm](https://img.shields.io/npm/v/@costrict-manager/memory)](https://www.npmjs.com/package/@costrict-manager/memory)
 
 !!! note "Not Required"
-    This plugin is entirely optional. OpenCode Manager works fully without it — install it only if you want persistent project knowledge and semantic search capabilities.
+    This plugin is entirely optional. CoStrict Manager works fully without it — install it only if you want persistent project knowledge and semantic search capabilities.
 
-!!! tip "Works with Standalone OpenCode"
-    This plugin can also be used with standalone OpenCode installations outside of OpenCode Manager. Simply install the package and add it to your `opencode.json` plugins array.
+!!! tip "Works with Standalone CoStrict"
+    This plugin can also be used with standalone CoStrict installations outside of CoStrict Manager. Simply install the package and add it to your `opencode.json` plugins array.
 
 ---
 
 ## Installation
 
 ```bash
-pnpm add @opencode-manager/memory
+pnpm add @costrict-manager/memory
 ```
 
 The local embedding model (`all-MiniLM-L6-v2`) is downloaded automatically via the `postinstall` script. For API-based embeddings (OpenAI or Voyage), skip the local model and set your provider and API key in the configuration instead.
@@ -24,7 +24,7 @@ Then register the plugin in your `opencode.json`:
 
 ```json
 {
-  "plugin": ["@opencode-manager/memory"]
+  "plugin": ["@costrict-manager/memory"]
 }
 ```
 
@@ -120,7 +120,7 @@ Set `baseUrl` to point at any OpenAI-compatible self-hosted service (vLLM, Ollam
 | `memoryInjection.cacheTtlMs` | Cache TTL (ms) for identical query results | `30000` |
 | `messagesTransform.enabled` | Enable the messages transform hook (memory injection + Architect enforcement) | `true` |
 | `messagesTransform.debug` | Enable debug logging for messages transform | `false` |
-| `executionModel` | Model override for plan execution sessions (`provider/model`). Falls back to OpenCode's default model. | — |
+| `executionModel` | Model override for plan execution sessions (`provider/model`). Falls back to CoStrict's default model. | — |
 
 ---
 
@@ -203,7 +203,7 @@ When using the `local` provider, the plugin runs a shared Unix socket server (`e
 5. Uses PID files and startup locks to prevent duplicate server instances
 6. Falls back to in-process embedding if the server fails to start
 
-This architecture means the model is loaded once regardless of how many OpenCode sessions are running.
+This architecture means the model is loaded once regardless of how many CoStrict sessions are running.
 
 #### API Provider
 
@@ -251,7 +251,7 @@ Each memory record contains:
 | Field | Description |
 |-------|-------------|
 | `id` | Auto-incrementing integer primary key |
-| `projectId` | The OpenCode project this memory belongs to |
+| `projectId` | The CoStrict project this memory belongs to |
 | `scope` | `convention`, `decision`, or `context` |
 | `content` | The memory text |
 | `filePath` | Optional file path reference |
@@ -354,9 +354,9 @@ Create a new Code session and send an implementation plan as the first prompt. D
 | `plan` | string | Yes | The full implementation plan to send to the Code agent |
 | `title` | string | Yes | Short title for the session (shown in session list, max 60 chars) |
 
-Creates a new session via the OpenCode API and sends the plan as the first message to the Code agent. Returns the session ID and title. Only the Architect agent has access to this tool — it is excluded from Code and Memory agents.
+Creates a new session via the CoStrict API and sends the plan as the first message to the Code agent. Returns the session ID and title. Only the Architect agent has access to this tool — it is excluded from Code and Memory agents.
 
-The model used for the new Code session is determined by `executionModel` in the plugin config (format: `provider/model`, e.g. `anthropic/claude-sonnet-4-20250514`). If not set, OpenCode's default model resolution is used — typically the `model` field from `opencode.json`.
+The model used for the new Code session is determined by `executionModel` in the plugin config (format: `provider/model`, e.g. `anthropic/claude-sonnet-4-20250514`). If not set, CoStrict's default model resolution is used — typically the `model` field from `opencode.json`.
 
 ### memory-kv-set
 
@@ -442,7 +442,7 @@ Or set it from the UI: **Settings > Memory Plugin > Execution Model**.
 
 ## Agents
 
-The plugin registers four agents that are configured into OpenCode:
+The plugin registers four agents that are configured into CoStrict:
 
 ### Code Agent (primary)
 
@@ -504,7 +504,7 @@ The `/review` slash command triggers this agent as a subtask with the template: 
 
 ### Built-in Agent Enhancements
 
-The plugin also modifies built-in OpenCode agents:
+The plugin also modifies built-in CoStrict agents:
 
 | Agent | Enhancement |
 |-------|-------------|
@@ -523,7 +523,7 @@ The default agent is set to `Code`.
 
 ## Hooks
 
-The plugin registers several hooks into OpenCode's lifecycle:
+The plugin registers several hooks into CoStrict's lifecycle:
 
 ### chat.message
 
@@ -561,7 +561,7 @@ Performs two functions on the message array before each LLM inference call:
 5. Trims the block to fit within `maxTokens` and appends it as a synthetic text part to the user message
 6. Uses SHA-256 content-hash caching (`cacheTtlMs`, default 30s) to avoid redundant vector searches across inference steps
 
-The hook fires on every LLM inference step (including tool-use follow-ups), but since OpenCode re-reads messages from the database each iteration, synthetic parts are ephemeral. The cache ensures the vector search only runs once per unique user message within the TTL window.
+The hook fires on every LLM inference step (including tool-use follow-ups), but since CoStrict re-reads messages from the database each iteration, synthetic parts are ephemeral. The cache ensures the vector search only runs once per unique user message within the TTL window.
 
 Memory injection is controlled independently by `memoryInjection.enabled` (default `true`). Architect read-only enforcement is controlled by `messagesTransform.enabled` (default `true`).
 
@@ -615,7 +615,7 @@ The cleanup function is idempotent — calling it multiple times is safe.
 
 ## CLI
 
-The plugin includes the `ocm-mem` CLI for managing memories outside of OpenCode sessions. The CLI auto-detects the project ID from git and resolves the database path automatically.
+The plugin includes the `ocm-mem` CLI for managing memories outside of CoStrict sessions. The CLI auto-detects the project ID from git and resolves the database path automatically.
 
 ```bash
 ocm-mem <command> [options]

@@ -14,6 +14,7 @@ export async function createRepo(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ repoUrl, localPath, branch, openCodeConfigName, useWorktree, skipSSHVerification }),
+    timeout: 660000,
   })
 }
 

@@ -18,7 +18,7 @@ Open [http://localhost:5003](http://localhost:5003) in your browser.
 
 The container automatically:
 
-- Installs OpenCode if not present
+- Installs CoStrict if not present
 - Builds and serves the frontend
 - Creates persistent volumes for workspace and database
 - Configures health checks and auto-restart
@@ -60,7 +60,7 @@ For contributors who want to develop locally instead of using Docker.
 
 - [pnpm](https://pnpm.io/installation) - Package manager (required for workspaces)
 - [Bun](https://bun.sh) - Backend runtime
-- [OpenCode TUI](https://opencode.ai) - `curl -fsSL https://opencode.ai/install | bash`
+- [CoStrict TUI](https://costrict.ai) - `curl -fsSL https://costrict.ai/install | bash`
 - [Node.js 24+](https://nodejs.org/en/about/previous-releases)
 
 ### Setup

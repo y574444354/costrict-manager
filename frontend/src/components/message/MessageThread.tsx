@@ -7,9 +7,9 @@ import { MessageError } from './MessageError'
 import type { Message, Part, MessageWithParts } from '@/api/types'
 import { useSessionStatusForSession } from '@/stores/sessionStatusStore'
 import { useSessionTodos } from '@/stores/sessionTodosStore'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 import type { Todo } from '@/components/message/SessionTodoDisplay'
-import type { OpenCodeError } from '@/lib/opencode-errors'
+import type { CoStrictError } from '@/lib/errors'
 
 function getMessageTextContent(parts: Part[]): string {
   return parts
@@ -20,7 +20,7 @@ function getMessageTextContent(parts: Part[]): string {
 }
 
 interface MessageThreadProps {
-  opcodeUrl: string
+  coststrictUrl: string
   sessionID: string
   directory?: string
   messages?: MessageWithParts[]
@@ -70,7 +70,7 @@ interface MessageRowProps {
   onUndoMessage?: (restoredPrompt: string) => void
   editingUserMessageId: string | null
   editingForAssistantId: string | null
-  opcodeUrl: string
+  coststrictUrl: string
   sessionID: string
   directory?: string
   onFileClick?: (filePath: string, lineNumber?: number) => void
@@ -90,7 +90,7 @@ const MessageRow = memo(function MessageRow({
   onUndoMessage,
   editingUserMessageId,
   editingForAssistantId,
-  opcodeUrl,
+  coststrictUrl,
   sessionID,
   directory,
   onFileClick,
@@ -158,7 +158,7 @@ const MessageRow = memo(function MessageRow({
           
           {msg.role === 'user' && canUndoUserMessage && (
             <UserMessageActionButtons
-              opcodeUrl={opcodeUrl}
+              coststrictUrl={coststrictUrl}
               sessionId={sessionID}
               directory={directory}
               userMessageId={msg.id}
@@ -171,7 +171,7 @@ const MessageRow = memo(function MessageRow({
         <div className="space-y-2">
           {msg.role === 'user' && isEditingThisMessage && editingForAssistantId ? (
             <EditableUserMessage
-              opcodeUrl={opcodeUrl}
+              coststrictUrl={coststrictUrl}
               sessionId={sessionID}
               directory={directory}
               content={messageTextContent}
@@ -201,7 +201,7 @@ const MessageRow = memo(function MessageRow({
             ))
           ) : null}
           {msg.role === 'assistant' && 'error' in msg && msg.error && (
-            <MessageError error={msg.error as OpenCodeError} />
+            <MessageError error={msg.error as CoStrictError} />
           )}
         </div>
       </div>
@@ -210,7 +210,7 @@ const MessageRow = memo(function MessageRow({
 })
 
 export const MessageThread = memo(function MessageThread({ 
-  opcodeUrl, 
+  coststrictUrl, 
   sessionID, 
   directory, 
   messages, 
@@ -308,7 +308,7 @@ export const MessageThread = memo(function MessageThread({
           onUndoMessage={onUndoMessage}
           editingUserMessageId={editingUserMessageId}
           editingForAssistantId={editingForAssistantId}
-          opcodeUrl={opcodeUrl}
+          coststrictUrl={coststrictUrl}
           sessionID={sessionID}
           directory={directory}
           onFileClick={onFileClick}

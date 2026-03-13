@@ -32,7 +32,7 @@ async function generateOpenAPISpec() {
     return outputPath
   } catch (error) {
     console.error('❌ Failed to fetch OpenAPI spec:', error)
-    console.error('\n💡 Make sure an OpenCode server is running.')
+    console.error('\n💡 Make sure a CoStrict server is running.')
     console.error('   You can start one by opening a repo in the WebUI.')
     process.exit(1)
   }
@@ -62,7 +62,7 @@ async function generateTypeScript(specPath: string) {
 }
 
 async function main() {
-  console.log('🚀 Generating OpenCode API types...\n')
+  console.log('🚀 Generating CoStrict API types...\n')
   
   const specPath = await generateOpenAPISpec()
   await generateTypeScript(specPath)

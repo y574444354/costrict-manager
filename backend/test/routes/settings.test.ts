@@ -48,12 +48,12 @@ vi.mock('../../src/services/file-operations', () => ({
 }))
 
 vi.mock('../../src/services/proxy', () => ({
-  patchOpenCodeConfig: vi.fn(),
-  proxyToOpenCodeWithDirectory: vi.fn(),
+  patchCoStrictConfig: vi.fn(),
+  proxyToCoStrictWithDirectory: vi.fn(),
 }))
 
-vi.mock('../../src/services/opencode-single-server', () => ({
-  opencodeServerManager: {
+vi.mock('../../src/services/costrict-single-server', () => ({
+  costrictServerManager: {
     getVersion: vi.fn(),
     fetchVersion: vi.fn(),
     reloadConfig: vi.fn(),
@@ -65,10 +65,10 @@ vi.mock('../../src/services/opencode-single-server', () => ({
   },
 }))
 
-vi.mock('@opencode-manager/shared/config/env', () => ({
+vi.mock('@costrict-manager/shared/config/env', () => ({
   getWorkspacePath: vi.fn(() => '/tmp/test-workspace'),
   getReposPath: vi.fn(() => '/tmp/test-repos'),
-  getOpenCodeConfigFilePath: vi.fn(() => '/tmp/test-workspace/.config/opencode.json'),
+  getCoStrictConfigFilePath: vi.fn(() => '/tmp/test-workspace/.config/costrict.json'),
   getAgentsMdPath: vi.fn(() => '/tmp/test-workspace/AGENTS.md'),
   getDatabasePath: vi.fn(() => ':memory:'),
   getConfigPath: vi.fn(() => '/tmp/test-workspace/config'),
@@ -76,7 +76,7 @@ vi.mock('@opencode-manager/shared/config/env', () => ({
     SERVER: { PORT: 5003, HOST: '0.0.0.0', NODE_ENV: 'test' },
     AUTH: { TRUSTED_ORIGINS: 'http://localhost:5173', SECRET: 'test-secret-for-encryption-key-32c' },
     WORKSPACE: { BASE_PATH: '/tmp/test-workspace', REPOS_DIR: 'repos', CONFIG_DIR: 'config', AUTH_FILE: 'auth.json' },
-    OPENCODE: { PORT: 5551, HOST: '127.0.0.1' },
+    COSTRICT: { PORT: 5551, HOST: '127.0.0.1' },
     DATABASE: { PATH: ':memory:' },
     FILE_LIMITS: {
       MAX_SIZE_BYTES: 1024 * 1024,
@@ -90,16 +90,16 @@ vi.mock('@opencode-manager/shared/config/env', () => ({
 }))
 
 import { createSettingsRoutes } from '../../src/routes/settings'
-import { opencodeServerManager } from '../../src/services/opencode-single-server'
+import { costrictServerManager } from '../../src/services/costrict-server'
 
 const mockExecSync = execSync as ReturnType<typeof vi.fn>
-const mockGetVersion = opencodeServerManager.getVersion as ReturnType<typeof vi.fn>
-const mockFetchVersion = opencodeServerManager.fetchVersion as ReturnType<typeof vi.fn>
-const mockReloadConfig = opencodeServerManager.reloadConfig as ReturnType<typeof vi.fn>
-const mockRestart = opencodeServerManager.restart as ReturnType<typeof vi.fn>
-const mockClearStartupError = opencodeServerManager.clearStartupError as ReturnType<typeof vi.fn>
+const mockGetVersion = costrictServerManager.getVersion as ReturnType<typeof vi.fn>
+const mockFetchVersion = costrictServerManager.fetchVersion as ReturnType<typeof vi.fn>
+const mockReloadConfig = costrictServerManager.reloadConfig as ReturnType<typeof vi.fn>
+const mockRestart = costrictServerManager.restart as ReturnType<typeof vi.fn>
+const mockClearStartupError = costrictServerManager.clearStartupError as ReturnType<typeof vi.fn>
 
-describe('Settings Routes - OpenCode Upgrade', () => {
+describe('Settings Routes - CoStrict Upgrade', () => {
   let settingsApp: ReturnType<typeof createSettingsRoutes>
   let testDb: any
 
@@ -120,14 +120,14 @@ describe('Settings Routes - OpenCode Upgrade', () => {
     mockClearStartupError.mockReturnValue(undefined)
   })
 
-  describe('POST /opencode-upgrade', () => {
+  describe('POST /costrict-upgrade', () => {
     describe('successful upgrade scenarios', () => {
-      it('should upgrade OpenCode successfully and respond with success', async () => {
+      it('should upgrade CoStrict successfully and respond with success', async () => {
         mockGetVersion.mockReturnValueOnce('1.0.0')
           .mockReturnValueOnce('1.0.1')
         mockExecSync.mockReturnValueOnce('Upgrade successful\n')
 
-        const req = new Request('http://localhost/opencode-upgrade', {
+        const req = new Request('http://localhost/costrict-upgrade', {
           method: 'POST'
         })
         const res = await settingsApp.fetch(req)
@@ -145,7 +145,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
           .mockReturnValueOnce('1.0.0')
         mockExecSync.mockReturnValueOnce('Already up to date\n')
 
-        const req = new Request('http://localhost/opencode-upgrade', {
+        const req = new Request('http://localhost/costrict-upgrade', {
           method: 'POST'
         })
         const res = await settingsApp.fetch(req)
@@ -163,7 +163,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
         mockExecSync.mockReturnValueOnce('Upgrade successful\n')
         mockReloadConfig.mockResolvedValueOnce(undefined)
 
-        const req = new Request('http://localhost/opencode-upgrade', {
+        const req = new Request('http://localhost/costrict-upgrade', {
           method: 'POST'
         })
         await settingsApp.fetch(req)
@@ -178,7 +178,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
         mockExecSync.mockReturnValueOnce('Upgrade successful\n')
         mockReloadConfig.mockRejectedValueOnce(new Error('Reload failed'))
 
-        const req = new Request('http://localhost/opencode-upgrade', {
+        const req = new Request('http://localhost/costrict-upgrade', {
           method: 'POST'
         })
         await settingsApp.fetch(req)
@@ -200,13 +200,13 @@ describe('Settings Routes - OpenCode Upgrade', () => {
           throw timeoutError
         })
 
-        const req = new Request('http://localhost/opencode-upgrade', {
+        const req = new Request('http://localhost/costrict-upgrade', {
           method: 'POST'
         })
         const res = await settingsApp.fetch(req)
         const json = await res.json() as Record<string, unknown>
 
-        expect(mockExecSync).toHaveBeenCalledWith('opencode upgrade --method curl 2>&1', expect.objectContaining({
+        expect(mockExecSync).toHaveBeenCalledWith('costrict upgrade --method curl 2>&1', expect.objectContaining({
           timeout: 90000,
           killSignal: 'SIGKILL'
         }))
@@ -230,7 +230,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
           throw new Error('Network error')
         })
 
-        const req = new Request('http://localhost/opencode-upgrade', {
+        const req = new Request('http://localhost/costrict-upgrade', {
           method: 'POST'
         })
         const res = await settingsApp.fetch(req)
@@ -251,7 +251,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
         })
         mockRestart.mockRejectedValueOnce(new Error('Restart failed'))
 
-        const req = new Request('http://localhost/opencode-upgrade', {
+        const req = new Request('http://localhost/costrict-upgrade', {
           method: 'POST'
         })
         const res = await settingsApp.fetch(req)
@@ -269,7 +269,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
         mockFetchVersion.mockResolvedValueOnce('1.0.1')
         mockExecSync.mockReturnValueOnce('Upgrade successful\n')
 
-        const req = new Request('http://localhost/opencode-upgrade', {
+        const req = new Request('http://localhost/costrict-upgrade', {
           method: 'POST'
         })
         const res = await settingsApp.fetch(req)
@@ -286,7 +286,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
         mockFetchVersion.mockResolvedValueOnce(null)
         mockExecSync.mockReturnValueOnce('Upgrade successful\n')
 
-        const req = new Request('http://localhost/opencode-upgrade', {
+        const req = new Request('http://localhost/costrict-upgrade', {
           method: 'POST'
         })
         const res = await settingsApp.fetch(req)
@@ -297,14 +297,14 @@ describe('Settings Routes - OpenCode Upgrade', () => {
     })
   })
 
-  describe('POST /opencode-install-version', () => {
+  describe('POST /costrict-install-version', () => {
     describe('successful installation', () => {
       it('should install specific version successfully', async () => {
         mockGetVersion.mockReturnValueOnce('1.0.0')
         mockFetchVersion.mockResolvedValueOnce('1.0.5')
         mockExecSync.mockReturnValueOnce('Installed v1.0.5\n')
 
-        const req = new Request('http://localhost/opencode-install-version', {
+        const req = new Request('http://localhost/costrict-install-version', {
           method: 'POST',
           body: JSON.stringify({ version: '1.0.5' }),
           headers: { 'Content-Type': 'application/json' }
@@ -322,7 +322,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
         mockFetchVersion.mockResolvedValueOnce('1.0.5')
         mockExecSync.mockReturnValueOnce('Installed v1.0.5\n')
 
-        const req = new Request('http://localhost/opencode-install-version', {
+        const req = new Request('http://localhost/costrict-install-version', {
           method: 'POST',
           body: JSON.stringify({ version: '1.0.5' }),
           headers: { 'Content-Type': 'application/json' }
@@ -330,7 +330,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
         await settingsApp.fetch(req)
 
         expect(mockExecSync).toHaveBeenCalledWith(
-          'opencode upgrade v1.0.5 --method curl 2>&1',
+          'costrict upgrade v1.0.5 --method curl 2>&1',
           expect.any(Object)
         )
       })
@@ -340,7 +340,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
         mockFetchVersion.mockResolvedValueOnce('1.0.5')
         mockExecSync.mockReturnValueOnce('Installed v1.0.5\n')
 
-        const req = new Request('http://localhost/opencode-install-version', {
+        const req = new Request('http://localhost/costrict-install-version', {
           method: 'POST',
           body: JSON.stringify({ version: 'v1.0.5' }),
           headers: { 'Content-Type': 'application/json' }
@@ -348,7 +348,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
         await settingsApp.fetch(req)
 
         expect(mockExecSync).toHaveBeenCalledWith(
-          'opencode upgrade v1.0.5 --method curl 2>&1',
+          'costrict upgrade v1.0.5 --method curl 2>&1',
           expect.any(Object)
         )
       })
@@ -363,7 +363,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
           throw new Error('timeout')
         })
 
-        const req = new Request('http://localhost/opencode-install-version', {
+        const req = new Request('http://localhost/costrict-install-version', {
           method: 'POST',
           body: JSON.stringify({ version: '1.0.5' }),
           headers: { 'Content-Type': 'application/json' }
@@ -372,7 +372,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
         const json = await res.json() as Record<string, unknown>
 
         expect(mockExecSync).toHaveBeenCalledWith(
-          'opencode upgrade v1.0.5 --method curl 2>&1',
+          'costrict upgrade v1.0.5 --method curl 2>&1',
           expect.any(Object)
         )
         expect(mockRestart).toHaveBeenCalled()
@@ -383,7 +383,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
 
     describe('validation', () => {
       it('should reject empty version', async () => {
-        const req = new Request('http://localhost/opencode-install-version', {
+        const req = new Request('http://localhost/costrict-install-version', {
           method: 'POST',
           body: JSON.stringify({ version: '' }),
           headers: { 'Content-Type': 'application/json' }
@@ -394,7 +394,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
       })
 
       it('should reject missing version', async () => {
-        const req = new Request('http://localhost/opencode-install-version', {
+        const req = new Request('http://localhost/costrict-install-version', {
           method: 'POST',
           body: JSON.stringify({}),
           headers: { 'Content-Type': 'application/json' }
@@ -416,7 +416,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
       })
       mockRestart.mockResolvedValue(undefined)
 
-      const req = new Request('http://localhost/opencode-upgrade', {
+      const req = new Request('http://localhost/costrict-upgrade', {
         method: 'POST'
       })
       const res = await settingsApp.fetch(req)
@@ -436,7 +436,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
       })
       mockRestart.mockResolvedValue(undefined)
 
-      const req = new Request('http://localhost/opencode-upgrade', {
+      const req = new Request('http://localhost/costrict-upgrade', {
         method: 'POST'
       })
       const res = await settingsApp.fetch(req)
@@ -451,7 +451,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
       mockExecSync.mockReturnValueOnce('Upgrade successful\n')
       mockReloadConfig.mockResolvedValue(undefined)
 
-      const req = new Request('http://localhost/opencode-upgrade', {
+      const req = new Request('http://localhost/costrict-upgrade', {
         method: 'POST'
       })
       const res = await settingsApp.fetch(req)
@@ -472,7 +472,7 @@ describe('Settings Routes - OpenCode Upgrade', () => {
       })
       mockRestart.mockResolvedValue(undefined)
 
-      const req = new Request('http://localhost/opencode-upgrade', {
+      const req = new Request('http://localhost/costrict-upgrade', {
         method: 'POST'
       })
       const res = await settingsApp.fetch(req)

@@ -1,4 +1,4 @@
-# OpenCode WebUI - Agent Guidelines
+# CoStrict WebUI - Agent Guidelines
 
 ## Commands
 
@@ -49,7 +49,7 @@
 - YAGNI: Don’t build or keep code you don’t need. If you change something, remove the unused parts. use the new code or keep the old, but don’t keep both.
 - Never leave dead code: remove unused code, commented-out blocks, and unused variables/imports.
 - ./temp/opencode is reference only, never commit has opencode src
-- Use shared types from workspace package (@opencode-manager/shared)
-- OpenCode server runs on port 5551, backend API on port 5003
+- Use shared types from workspace package (@costrict-manager/shared)
+- CoStrict server runs on port 5551, backend API on port 5003
 - Prefer pnpm over npm for all package management
 - Run `pnpm lint` after completing tasks to ensure code quality

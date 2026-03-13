@@ -83,9 +83,9 @@ export function Login() {
     <div className="h-dvh flex flex-col items-center justify-center bg-gradient-to-br from-background via-background to-background p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center space-y-2">
-          <img 
-            src={theme === 'light' ? "/opencode-wordmark-light.svg" : "/opencode-wordmark-dark.svg"} 
-            alt="OpenCode" 
+          <img
+            src={theme === 'light' ? "/costrict-wordmark-light.svg" : "/costrict-wordmark-dark.svg"}
+            alt="CoStrict"
             className="h-8 w-auto"
           />
         </div>

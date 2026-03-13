@@ -1,5 +1,5 @@
 import { memo, useEffect, useState } from 'react'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 import { RefreshCw, AlertTriangle } from 'lucide-react'
 import { useSessionStatusForSession } from '@/stores/sessionStatusStore'
 

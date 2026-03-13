@@ -4,7 +4,7 @@ import { fetchWrapper } from "./fetchWrapper";
 
 export type ProviderSource = "configured" | "local" | "builtin";
 
-export interface OpenCodeModel {
+export interface CoStrictModel {
   id: string;
   providerID: string;
   name: string;
@@ -51,13 +51,13 @@ export interface OpenCodeModel {
   variants?: Record<string, Record<string, unknown>>;
 }
 
-export interface OpenCodeProvider {
+export interface CoStrictProvider {
   id: string;
   source: "custom" | "builtin";
   name: string;
   env: string[];
   options: Record<string, unknown>;
-  models: Record<string, OpenCodeModel>;
+  models: Record<string, CoStrictModel>;
 }
 
 export interface Model {
@@ -144,20 +144,20 @@ function classifyProviderSource(providerId: string, isFromConfig: boolean): Prov
 }
 
 
-interface OpenCodeProviderResponse {
-  all: OpenCodeProvider[];
+interface CoStrictProviderResponse {
+  all: CoStrictProvider[];
   connected: string[];
   default: Record<string, string>;
 }
 
-async function getProvidersFromOpenCodeServer(): Promise<{ providers: Provider[]; connected: string[] }> {
+async function getProvidersFromCoStrictServer(): Promise<{ providers: Provider[]; connected: string[] }> {
   try {
-    const response = await fetchWrapper<OpenCodeProviderResponse>(`${API_BASE_URL}/api/opencode/provider`);
+    const response = await fetchWrapper<CoStrictProviderResponse>(`${API_BASE_URL}/api/costrict/provider`);
 
     if (response?.all && Array.isArray(response.all)) {
       const connectedSet = new Set(response.connected || []);
 
-      const providers = response.all.map((openCodeProvider: OpenCodeProvider) => {
+      const providers = response.all.map((openCodeProvider: CoStrictProvider) => {
         const models: Record<string, Model> = {};
 
         Object.entries(openCodeProvider.models).forEach(([modelId, openCodeModel]) => {
@@ -213,12 +213,12 @@ async function getProvidersFromOpenCodeServer(): Promise<{ providers: Provider[]
 }
 
 export async function getProviders(): Promise<{ providers: Provider[]; connected: string[] }> {
-  return await getProvidersFromOpenCodeServer();
+  return await getProvidersFromCoStrictServer();
 }
 
 async function getConfiguredProviders(connectedIds: Set<string>): Promise<ProviderWithModels[]> {
   try {
-    const config = await settingsApi.getDefaultOpenCodeConfig();
+    const config = await settingsApi.getDefaultCoStrictConfig();
     if (!config?.content?.provider) return [];
 
     const configProviders = config.content.provider as Record<string, ConfigProvider>;

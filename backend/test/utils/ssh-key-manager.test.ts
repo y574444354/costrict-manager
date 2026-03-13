@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
 import * as fs from 'fs/promises'
 
-vi.mock('@opencode-manager/shared/config/env', () => ({
+vi.mock('@costrict-manager/shared/config/env', () => ({
   getWorkspacePath: vi.fn(() => '/tmp/ssh-key-test-workspace'),
   getReposPath: vi.fn(() => '/tmp/ssh-key-test-workspace/repos'),
-  getOpenCodeConfigFilePath: vi.fn(() => '/tmp/ssh-key-test-workspace/.config/opencode.json'),
+  getCoStrictConfigFilePath: vi.fn(() => '/tmp/ssh-key-test-workspace/.config/costrict.json'),
   getAgentsMdPath: vi.fn(() => '/tmp/ssh-key-test-workspace/AGENTS.md'),
   getDatabasePath: vi.fn(() => ':memory:'),
   getConfigPath: vi.fn(() => '/tmp/ssh-key-test-workspace/config'),

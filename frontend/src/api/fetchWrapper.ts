@@ -1,5 +1,5 @@
-import { FetchError } from '@opencode-manager/shared'
-import type { ApiErrorResponse } from '@opencode-manager/shared'
+import { FetchError } from '@costrict-manager/shared'
+import type { ApiErrorResponse } from '@costrict-manager/shared'
 
 export { FetchError }
 

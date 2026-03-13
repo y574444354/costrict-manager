@@ -183,7 +183,7 @@ describe('Database Queries', () => {
   })
 
   describe('updateRepoConfigName', () => {
-    it('should update repo OpenCode config name', () => {
+    it('should update repo CoStrict config name', () => {
       const stmt = {
         run: vi.fn().mockReturnValue({ changes: 1 })
       }

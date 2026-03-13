@@ -3,15 +3,15 @@ import { getModel, formatModelName } from '@/api/providers'
 import { useState, useEffect } from 'react'
 
 interface ContextUsageIndicatorProps {
-  opcodeUrl: string | null
+  coststrictUrl: string | null
   sessionID: string | undefined
   directory?: string
   isConnected: boolean
   isReconnecting?: boolean
 }
 
-export function ContextUsageIndicator({ opcodeUrl, sessionID, directory, isConnected, isReconnecting }: ContextUsageIndicatorProps) {
-  const { totalTokens, contextLimit, usagePercentage, currentModel, isLoading } = useContextUsage(opcodeUrl, sessionID, directory)
+export function ContextUsageIndicator({ coststrictUrl, sessionID, directory, isConnected, isReconnecting }: ContextUsageIndicatorProps) {
+  const { totalTokens, contextLimit, usagePercentage, currentModel, isLoading } = useContextUsage(coststrictUrl, sessionID, directory)
   const [modelName, setModelName] = useState<string>('')
 
   useEffect(() => {

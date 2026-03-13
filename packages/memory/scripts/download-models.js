@@ -3,7 +3,7 @@ import { homedir, platform } from 'os'
 import { join } from 'path'
 
 const xdgDataHome = process.env['XDG_DATA_HOME'] || join(homedir(), platform() === 'win32' ? 'AppData' : '.local', 'share')
-const cacheDir = join(xdgDataHome, 'opencode', 'memory', 'models')
+const cacheDir = join(xdgDataHome, 'costrict', 'memory', 'models')
 
 if (!existsSync(cacheDir)) {
   mkdirSync(cacheDir, { recursive: true })

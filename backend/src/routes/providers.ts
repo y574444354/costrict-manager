@@ -38,7 +38,7 @@ export function createProvidersRoutes() {
       
       const openCodeSuccess = await setOpenCodeAuth(providerId, validated.apiKey)
       if (!openCodeSuccess) {
-        logger.warn(`Failed to set OpenCode auth for ${providerId}, saving locally only`)
+        logger.warn(`Failed to set CoStrict auth for ${providerId}, saving locally only`)
       }
       
       await authService.set(providerId, validated.apiKey)
@@ -58,7 +58,7 @@ export function createProvidersRoutes() {
       
       const openCodeSuccess = await deleteOpenCodeAuth(providerId)
       if (!openCodeSuccess) {
-        logger.warn(`Failed to delete OpenCode auth for ${providerId}, removing locally only`)
+        logger.warn(`Failed to delete CoStrict auth for ${providerId}, removing locally only`)
       }
       
       await authService.delete(providerId)

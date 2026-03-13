@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: opencode-manager
+    container_name: costrict-manager
     ports:
       - "5003:5003"
       - "5100:5100"
@@ -14,8 +14,8 @@ services:
       - NODE_ENV=${NODE_ENV:-production}
       - HOST=0.0.0.0
       - PORT=5003
-      - OPENCODE_SERVER_PORT=5551
-      - DATABASE_PATH=/app/data/opencode.db
+      - COSTRICT_SERVER_PORT=5551
+      - DATABASE_PATH=/app/data/costrict.db
       - WORKSPACE_PATH=/workspace
       - PROCESS_START_WAIT_MS=2000
       - PROCESS_VERIFY_WAIT_MS=1000
@@ -37,14 +37,14 @@ services:
       - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
       - AUTH_SECURE_COOKIES=${AUTH_SECURE_COOKIES:-false}
       - PASSKEY_RP_ID=${PASSKEY_RP_ID:-localhost}
-      - PASSKEY_RP_NAME=${PASSKEY_RP_NAME:-OpenCode Manager}
+      - PASSKEY_RP_NAME=${PASSKEY_RP_NAME:-CoStrict Manager}
       - PASSKEY_ORIGIN=${PASSKEY_ORIGIN:-http://localhost:5003}
       - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
       - VAPID_SUBJECT=${VAPID_SUBJECT:-}
     volumes:
-      - opencode-workspace:/workspace
-      - opencode-data:/app/data
+      - costrict-workspace:/workspace
+      - costrict-data:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5003/api/health"]
@@ -54,7 +54,7 @@ services:
       start_period: 40s
 
 volumes:
-  opencode-workspace:
+  costrict-workspace:
     driver: local
-  opencode-data:
+  costrict-data:
     driver: local

@@ -6,34 +6,34 @@ import { resolve, dirname } from 'path'
 import type { Database } from 'bun:sqlite'
 import { SettingsService } from '../services/settings'
 import { writeFileContent, readFileContent, fileExists } from '../services/file-operations'
-import { patchOpenCodeConfig, proxyToOpenCodeWithDirectory } from '../services/proxy'
-import { getOpenCodeConfigFilePath, getAgentsMdPath, ENV } from '@opencode-manager/shared/config/env'
+import { patchCoStrictConfig, proxyToCoStrictWithDirectory } from '../services/proxy'
+import { getCoStrictConfigFilePath, getAgentsMdPath, ENV } from '@costrict-manager/shared/config/env'
 import {
   UserPreferencesSchema,
-  OpenCodeConfigSchema,
+  CoStrictConfigSchema,
 } from '../types/settings'
-import type { GitCredential } from '@opencode-manager/shared'
+import type { GitCredential } from '@costrict-manager/shared'
 import { logger } from '../utils/logger'
-import { opencodeServerManager } from '../services/opencode-single-server'
+import { costrictServerManager } from '../services/costrict-server'
 import { DEFAULT_AGENTS_MD } from '../constants'
 import { validateSSHPrivateKey } from '../utils/ssh-validation'
 import { encryptSecret } from '../utils/crypto'
 import { compareVersions } from '../utils/version-utils'
 
-function getOpenCodeInstallMethod(): string {
+function getCoStrictInstallMethod(): string {
   const homePath = process.env.HOME || ''
-  const opencodePath = process.env.OPENCOD_PATH || resolve(homePath, '.opencode', 'bin', 'opencode')
+  const costrictPath = process.env.COSTRICT_PATH || resolve(homePath, '.costrict', 'bin', 'costrict')
   
-  if (!existsSync(opencodePath)) return 'curl'
+  if (!existsSync(costrictPath)) return 'curl'
   
   try {
-    const opencodeDir = dirname(opencodePath)
-    if (opencodeDir.includes('.opencode')) return 'curl'
+    const costrictDir = dirname(costrictPath)
+    if (costrictDir.includes('.costrict')) return 'curl'
     
-    if (opencodePath.includes('/homebrew/') || opencodePath.includes('/HOMEBREW/')) return 'brew'
-    if (opencodePath.includes('/.npm/') || opencodePath.includes('/node_modules/')) return 'npm'
-    if (opencodePath.includes('/.pnpm/')) return 'pnpm'
-    if (opencodePath.includes('/.bun/')) return 'bun'
+    if (costrictPath.includes('/homebrew/') || costrictPath.includes('/HOMEBREW/')) return 'brew'
+    if (costrictPath.includes('/.npm/') || costrictPath.includes('/node_modules/')) return 'npm'
+    if (costrictPath.includes('/.pnpm/')) return 'pnpm'
+    if (costrictPath.includes('/.bun/')) return 'bun'
   } catch {
     return 'curl'
   }
@@ -83,14 +83,14 @@ const UpdateSettingsSchema = z.object({
   preferences: UserPreferencesSchema.partial(),
 })
 
-const CreateOpenCodeConfigSchema = z.object({
+const CreateCoStrictConfigSchema = z.object({
   name: z.string().min(1).max(255),
-  content: z.union([OpenCodeConfigSchema, z.string()]),
+  content: z.union([CoStrictConfigSchema, z.string()]),
   isDefault: z.boolean().optional(),
 })
 
-const UpdateOpenCodeConfigSchema = z.object({
-  content: z.union([OpenCodeConfigSchema, z.string()]),
+const UpdateCoStrictConfigSchema = z.object({
+  content: z.union([CoStrictConfigSchema, z.string()]),
   isDefault: z.boolean().optional(),
 })
 
@@ -122,7 +122,7 @@ const TestSSHConnectionSchema = z.object({
 })
 
 
-async function extractOpenCodeError(response: Response, defaultError: string): Promise<string> {
+async function extractCoStrictError(response: Response, defaultError: string): Promise<string> {
   const errorObj = await response.json().catch(() => null)
   return (errorObj && typeof errorObj === 'object' && 'error' in errorObj)
     ? String(errorObj.error)
@@ -147,9 +147,9 @@ export function createSettingsRoutes(db: Database) {
   app.get('/memory-plugin-status', async (c) => {
     try {
       const userId = c.req.query('userId') || 'default'
-      const configs = settingsService.getOpenCodeConfigs(userId)
+      const configs = settingsService.getCostrictConfigs(userId)
       const defaultConfig = configs.configs.find((cfg: { isDefault: boolean }) => cfg.isDefault)
-      const isEnabled = defaultConfig?.content?.plugin?.includes('@opencode-manager/memory') ?? false
+      const isEnabled = defaultConfig?.content?.plugin?.includes('@costrict-manager/memory') ?? false
       return c.json({ memoryPluginEnabled: isEnabled })
     } catch (error) {
       logger.error('Failed to get memory plugin status:', error)
@@ -201,12 +201,12 @@ export function createSettingsRoutes(db: Database) {
       let reloadError: string | undefined
       if (credentialsChanged || identityChanged) {
         const changeType = [credentialsChanged && 'credentials', identityChanged && 'identity'].filter(Boolean).join(' and ')
-        logger.info(`Git ${changeType} changed, reloading OpenCode configuration`)
+        logger.info(`Git ${changeType} changed, reloading CoStrict configuration`)
         try {
-          await opencodeServerManager.reloadConfig()
+          await costrictServerManager.reloadConfig()
           serverRestarted = true
         } catch (error) {
-          logger.warn('Failed to reload OpenCode config after git settings change:', error)
+          logger.warn('Failed to reload CoStrict config after git settings change:', error)
           reloadError = error instanceof Error ? error.message : 'Unknown error'
         }
       }
@@ -235,32 +235,32 @@ export function createSettingsRoutes(db: Database) {
     }
   })
 
-  // OpenCode Config routes
-  app.get('/opencode-configs', async (c) => {
+  // CoStrict Config routes
+  app.get('/costrict-configs', async (c) => {
     try {
       const userId = c.req.query('userId') || 'default'
-      const configs = settingsService.getOpenCodeConfigs(userId)
+      const configs = settingsService.getCostrictConfigs(userId)
       return c.json(configs)
     } catch (error) {
-      logger.error('Failed to get OpenCode configs:', error)
-      return c.json({ error: 'Failed to get OpenCode configs' }, 500)
+      logger.error('Failed to get CoStrict configs:', error)
+      return c.json({ error: 'Failed to get CoStrict configs' }, 500)
     }
   })
 
-  app.post('/opencode-configs', async (c) => {
+  app.post('/costrict-configs', async (c) => {
     try {
       const userId = c.req.query('userId') || 'default'
       const body = await c.req.json()
-      const validated = CreateOpenCodeConfigSchema.parse(body)
+      const validated = CreateCoStrictConfigSchema.parse(body)
       
-      const config = settingsService.createOpenCodeConfig(validated, userId)
+      const config = settingsService.createCoStrictConfig(validated, userId)
       
       if (config.isDefault) {
-        const configPath = getOpenCodeConfigFilePath()
+        const configPath = getCoStrictConfigFilePath()
         await writeFileContent(configPath, config.rawContent)
         logger.info(`Wrote default config to: ${configPath}`)
         
-        const patchResult = await patchOpenCodeConfig(config.content)
+        const patchResult = await patchCoStrictConfig(config.content)
         if (!patchResult.success) {
           return c.json({ error: 'Config saved but failed to apply', details: patchResult.error }, 500)
         }
@@ -268,34 +268,34 @@ export function createSettingsRoutes(db: Database) {
       
       return c.json(config)
     } catch (error) {
-      logger.error('Failed to create OpenCode config:', error)
+      logger.error('Failed to create CoStrict config:', error)
       if (error instanceof z.ZodError) {
         return c.json({ error: 'Invalid config data', details: error.issues }, 400)
       }
       if (error instanceof Error && error.message.includes('already exists')) {
         return c.json({ error: error.message }, 409)
       }
-      return c.json({ error: 'Failed to create OpenCode config' }, 500)
+      return c.json({ error: 'Failed to create CoStrict config' }, 500)
     }
   })
 
-  app.put('/opencode-configs/:name', async (c) => {
+  app.put('/costrict-configs/:name', async (c) => {
     try {
       const userId = c.req.query('userId') || 'default'
       const configName = c.req.param('name')
       const body = await c.req.json()
-      const validated = UpdateOpenCodeConfigSchema.parse(body)
+      const validated = UpdateCoStrictConfigSchema.parse(body)
       
-      const existingConfig = settingsService.getOpenCodeConfigByName(configName, userId)
+      const existingConfig = settingsService.getCoStrictConfigByName(configName, userId)
       const existingAgents = existingConfig?.content?.agent
       
-      const config = settingsService.updateOpenCodeConfig(configName, validated, userId)
+      const config = settingsService.updateCoStrictConfig(configName, validated, userId)
       if (!config) {
         return c.json({ error: 'Config not found' }, 404)
       }
       
       if (config.isDefault) {
-        const configPath = getOpenCodeConfigFilePath()
+        const configPath = getCoStrictConfigFilePath()
         await writeFileContent(configPath, config.rawContent)
         logger.info(`Wrote default config to: ${configPath}`)
         
@@ -303,10 +303,10 @@ export function createSettingsRoutes(db: Database) {
         const agentsChanged = JSON.stringify(existingAgents) !== JSON.stringify(newAgents)
         
         if (agentsChanged) {
-          logger.info('Agent configuration changed, restarting OpenCode server')
-          await opencodeServerManager.restart()
+          logger.info('Agent configuration changed, restarting CoStrict server')
+          await costrictServerManager.restart()
         } else {
-          const patchResult = await patchOpenCodeConfig(config.content)
+          const patchResult = await patchCoStrictConfig(config.content)
           if (!patchResult.success) {
             return c.json({ error: 'Config saved but failed to apply', details: patchResult.error }, 500)
           }
@@ -315,63 +315,63 @@ export function createSettingsRoutes(db: Database) {
       
       return c.json(config)
     } catch (error) {
-      logger.error('Failed to update OpenCode config:', error)
+      logger.error('Failed to update CoStrict config:', error)
       if (error instanceof z.ZodError) {
         return c.json({ error: 'Invalid config data', details: error.issues }, 400)
       }
-      return c.json({ error: 'Failed to update OpenCode config' }, 500)
+      return c.json({ error: 'Failed to update CoStrict config' }, 500)
     }
   })
 
-  app.delete('/opencode-configs/:name', async (c) => {
+  app.delete('/costrict-configs/:name', async (c) => {
     try {
       const userId = c.req.query('userId') || 'default'
       const configName = c.req.param('name')
       
-      const deleted = settingsService.deleteOpenCodeConfig(configName, userId)
+      const deleted = settingsService.deleteCoStrictConfig(configName, userId)
       if (!deleted) {
         return c.json({ error: 'Config not found' }, 404)
       }
       
       return c.json({ success: true })
     } catch (error) {
-      logger.error('Failed to delete OpenCode config:', error)
-      return c.json({ error: 'Failed to delete OpenCode config' }, 500)
+      logger.error('Failed to delete CoStrict config:', error)
+      return c.json({ error: 'Failed to delete CoStrict config' }, 500)
     }
   })
 
-  app.post('/opencode-configs/:name/set-default', async (c) => {
+  app.post('/costrict-configs/:name/set-default', async (c) => {
     try {
       const userId = c.req.query('userId') || 'default'
       const configName = c.req.param('name')
 
       settingsService.saveLastKnownGoodConfig(userId)
 
-      const config = settingsService.setDefaultOpenCodeConfig(configName, userId)
+      const config = settingsService.setDefaultCoStrictConfig(configName, userId)
       if (!config) {
         return c.json({ error: 'Config not found' }, 404)
       }
 
-      const configPath = getOpenCodeConfigFilePath()
+      const configPath = getCoStrictConfigFilePath()
       await writeFileContent(configPath, config.rawContent)
       logger.info(`Wrote default config '${configName}' to: ${configPath}`)
 
-      const patchResult = await patchOpenCodeConfig(config.content)
+      const patchResult = await patchCoStrictConfig(config.content)
       if (!patchResult.success) {
         return c.json({ error: 'Config saved but failed to apply', details: patchResult.error }, 500)
       }
       
       return c.json(config)
     } catch (error) {
-      logger.error('Failed to set default OpenCode config:', error)
-      return c.json({ error: 'Failed to set default OpenCode config' }, 500)
+      logger.error('Failed to set default CoStrict config:', error)
+      return c.json({ error: 'Failed to set default CoStrict config' }, 500)
     }
   })
 
-  app.get('/opencode-configs/default', async (c) => {
+  app.get('/costrict-configs/default', async (c) => {
     try {
       const userId = c.req.query('userId') || 'default'
-      const config = settingsService.getDefaultOpenCodeConfig(userId)
+      const config = settingsService.getDefaultCoStrictConfig(userId)
       
       if (!config) {
         return c.json({ error: 'No default config found' }, 404)
@@ -379,56 +379,56 @@ export function createSettingsRoutes(db: Database) {
       
       return c.json(config)
     } catch (error) {
-      logger.error('Failed to get default OpenCode config:', error)
-      return c.json({ error: 'Failed to get default OpenCode config' }, 500)
+      logger.error('Failed to get default CoStrict config:', error)
+      return c.json({ error: 'Failed to get default CoStrict config' }, 500)
     }
   })
 
-  app.post('/opencode-restart', async (c) => {
+  app.post('/costrict-restart', async (c) => {
     try {
-      logger.info('Manual OpenCode server restart requested')
-      opencodeServerManager.clearStartupError()
-      await opencodeServerManager.restart()
-      return c.json({ success: true, message: 'OpenCode server restarted successfully' })
+      logger.info('Manual CoStrict server restart requested')
+      costrictServerManager.clearStartupError()
+      await costrictServerManager.restart()
+      return c.json({ success: true, message: 'CoStrict server restarted successfully' })
     } catch (error) {
-      logger.error('Failed to restart OpenCode server:', error)
-      const startupError = opencodeServerManager.getLastStartupError()
+      logger.error('Failed to restart CoStrict server:', error)
+      const startupError = costrictServerManager.getLastStartupError()
       return c.json({
-        error: 'Failed to restart OpenCode server',
+        error: 'Failed to restart CoStrict server',
         details: startupError || (error instanceof Error ? error.message : 'Unknown error')
       }, 500)
     }
   })
 
-  app.post('/opencode-reload', async (c) => {
+  app.post('/costrict-reload', async (c) => {
     try {
-      logger.info('OpenCode configuration reload requested')
-      await fetch(`http://${ENV.OPENCODE.HOST}:${ENV.OPENCODE.PORT}/config`, {
+      logger.info('CoStrict configuration reload requested')
+      await fetch(`http://${ENV.COSTRICT.HOST}:${ENV.COSTRICT.PORT}/config`, {
         method: 'GET'
       })
-      await opencodeServerManager.reloadConfig()
-      return c.json({ success: true, message: 'OpenCode configuration reloaded successfully' })
+      await costrictServerManager.reloadConfig()
+      return c.json({ success: true, message: 'CoStrict configuration reloaded successfully' })
     } catch (error) {
-      logger.error('Failed to reload OpenCode config:', error)
+      logger.error('Failed to reload CoStrict config:', error)
       return c.json({
-        error: 'Failed to reload OpenCode configuration',
+        error: 'Failed to reload CoStrict configuration',
         details: error instanceof Error ? error.message : 'Unknown error'
       }, 500)
     }
   })
 
-  app.post('/opencode-rollback', async (c) => {
+  app.post('/costrict-rollback', async (c) => {
     try {
       const userId = c.req.query('userId') || 'default'
-      logger.info('OpenCode config rollback requested')
+      logger.info('CoStrict config rollback requested')
 
       const rollbackConfig = settingsService.rollbackToLastKnownGoodHealth(userId)
       if (!rollbackConfig) {
         return c.json({ error: 'No previous working config available for rollback' }, 404)
       }
 
-      const configPath = getOpenCodeConfigFilePath()
-      const config = settingsService.getDefaultOpenCodeConfig(userId)
+      const configPath = getCoStrictConfigFilePath()
+      const config = settingsService.getDefaultCoStrictConfig(userId)
       if (!config) {
         return c.json({ error: 'Failed to get default config after rollback' }, 500)
       }
@@ -436,9 +436,9 @@ export function createSettingsRoutes(db: Database) {
       await writeFileContent(configPath, config.rawContent)
       logger.info(`Rolled back to config '${rollbackConfig}'`)
 
-      opencodeServerManager.clearStartupError()
+      costrictServerManager.clearStartupError()
       try {
-        await opencodeServerManager.reloadConfig()
+        await costrictServerManager.reloadConfig()
       } catch (reloadError) {
         logger.error('Rollback config reload failed, attempting restart:', reloadError)
 
@@ -447,8 +447,8 @@ export function createSettingsRoutes(db: Database) {
           logger.info('Deleted filesystem config, attempting restart with fallback')
           await new Promise(r => setTimeout(r, 1000))
 
-          opencodeServerManager.clearStartupError()
-          await opencodeServerManager.restart()
+          costrictServerManager.clearStartupError()
+          await costrictServerManager.restart()
 
           return c.json({
             success: true,
@@ -470,82 +470,82 @@ export function createSettingsRoutes(db: Database) {
         configName: rollbackConfig
       })
     } catch (error) {
-      logger.error('Failed to rollback OpenCode config:', error)
-      return c.json({ error: 'Failed to rollback OpenCode config' }, 500)
+      logger.error('Failed to rollback CoStrict config:', error)
+      return c.json({ error: 'Failed to rollback CoStrict config' }, 500)
     }
   })
 
-  app.post('/opencode-upgrade', async (c) => {
-    const oldVersion = opencodeServerManager.getVersion()
-    logger.info(`Current OpenCode version: ${oldVersion}`)
+  app.post('/costrict-upgrade', async (c) => {
+    const oldVersion = costrictServerManager.getVersion()
+    logger.info(`Current CoStrict version: ${oldVersion}`)
 
     try {
-      const installMethod = getOpenCodeInstallMethod()
-      logger.info(`Running opencode upgrade --method ${installMethod} with 90s timeout...`)
-      const { output: upgradeOutput, timedOut } = execWithTimeout(`opencode upgrade --method ${installMethod} 2>&1`, 90000)
+      const installMethod = getCoStrictInstallMethod()
+      logger.info(`Running costrict upgrade --method ${installMethod} with 90s timeout...`)
+      const { output: upgradeOutput, timedOut } = execWithTimeout(`costrict upgrade --method ${installMethod} 2>&1`, 90000)
       logger.info(`Upgrade output: ${upgradeOutput}`)
 
       if (timedOut) {
-        logger.warn('OpenCode upgrade timed out after 90 seconds')
+        logger.warn('CoStrict upgrade timed out after 90 seconds')
         throw new Error('Upgrade command timed out after 90 seconds')
       }
 
-      const newVersion = opencodeServerManager.getVersion() || await opencodeServerManager.fetchVersion()
-      logger.info(`New OpenCode version: ${newVersion}`)
+      const newVersion = costrictServerManager.getVersion() || await costrictServerManager.fetchVersion()
+      logger.info(`New CoStrict version: ${newVersion}`)
 
       const upgraded = oldVersion && newVersion && compareVersions(newVersion, oldVersion) > 0
 
       if (upgraded) {
-        logger.info(`OpenCode upgraded from v${oldVersion} to v${newVersion}`)
-        opencodeServerManager.clearStartupError()
+        logger.info(`CoStrict upgraded from v${oldVersion} to v${newVersion}`)
+        costrictServerManager.clearStartupError()
         try {
-          await opencodeServerManager.reloadConfig()
-          logger.info('OpenCode server reloaded after upgrade')
+          await costrictServerManager.reloadConfig()
+          logger.info('CoStrict server reloaded after upgrade')
         } catch (reloadError) {
           logger.warn('Config reload after upgrade failed, attempting full restart:', reloadError)
-          await opencodeServerManager.restart()
-          logger.info('OpenCode server restarted after upgrade')
+          await costrictServerManager.restart()
+          logger.info('CoStrict server restarted after upgrade')
         }
 
         return c.json({
           success: true,
-          message: `OpenCode upgraded from v${oldVersion} to v${newVersion} and configuration reloaded`,
+          message: `CoStrict upgraded from v${oldVersion} to v${newVersion} and configuration reloaded`,
           oldVersion,
           newVersion,
           upgraded: true
         })
       } else {
-        logger.info('OpenCode is already up to date or version unchanged')
+        logger.info('CoStrict is already up to date or version unchanged')
         return c.json({
           success: true,
-          message: 'OpenCode is already up to date',
+          message: 'CoStrict is already up to date',
           oldVersion,
           newVersion,
           upgraded: false
         })
       }
     } catch (error) {
-      logger.error('Failed to upgrade OpenCode:', error)
-      logger.warn('Attempting to recover OpenCode server...')
+      logger.error('Failed to upgrade CoStrict:', error)
+      logger.warn('Attempting to recover CoStrict server...')
 
       let recovered = false
       let recoveryMessage = ''
 
-      opencodeServerManager.clearStartupError()
+      costrictServerManager.clearStartupError()
       try {
-        await opencodeServerManager.restart()
-        logger.warn('OpenCode server restarted after upgrade failure')
+        await costrictServerManager.restart()
+        logger.warn('CoStrict server restarted after upgrade failure')
         recovered = true
         recoveryMessage = 'Server recovered'
       } catch (recoveryError) {
-        logger.error('Failed to recover OpenCode server:', recoveryError)
+        logger.error('Failed to recover CoStrict server:', recoveryError)
         recovered = false
         recoveryMessage = recoveryError instanceof Error ? recoveryError.message : 'Unknown error'
       }
 
       let currentVersion: string | null | undefined = oldVersion
       try {
-        currentVersion = opencodeServerManager.getVersion() || oldVersion
+        currentVersion = costrictServerManager.getVersion() || oldVersion
       } catch (versionError) {
         logger.error('Failed to get version after recovery:', versionError)
         currentVersion = oldVersion
@@ -562,7 +562,7 @@ export function createSettingsRoutes(db: Database) {
           recovered: true,
           recoveryMessage
         } : {
-          error: 'Failed to upgrade OpenCode and could not recover',
+          error: 'Failed to upgrade CoStrict and could not recover',
           details: error instanceof Error ? error.message : 'Unknown error',
           oldVersion,
           newVersion: currentVersion,
@@ -575,14 +575,14 @@ export function createSettingsRoutes(db: Database) {
     }
   })
 
-  app.get('/opencode-versions', async (c) => {
+  app.get('/costrict-versions', async (c) => {
     try {
-      logger.info('Fetching available OpenCode versions from GitHub')
+      logger.info('Fetching available CoStrict versions from GitHub')
       
-      const response = await fetch('https://api.github.com/repos/sst/opencode/releases?per_page=20', {
+      const response = await fetch('https://api.github.com/repos/sst/costrict/releases?per_page=20', {
         headers: {
           'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'opencode-manager'
+          'User-Agent': 'costrict-manager'
         }
       })
       
@@ -606,14 +606,14 @@ export function createSettingsRoutes(db: Database) {
           publishedAt: r.published_at
         }))
       
-      const currentVersion = opencodeServerManager.getVersion()
+      const currentVersion = costrictServerManager.getVersion()
       
       return c.json({
         versions,
         currentVersion
       })
     } catch (error) {
-      logger.error('Failed to fetch OpenCode versions:', error)
+      logger.error('Failed to fetch CoStrict versions:', error)
       return c.json({
         error: 'Failed to fetch versions',
         details: error instanceof Error ? error.message : 'Unknown error'
@@ -621,60 +621,60 @@ export function createSettingsRoutes(db: Database) {
     }
   })
 
-  app.post('/opencode-install-version', async (c) => {
-    const oldVersion = opencodeServerManager.getVersion()
-    logger.info(`Current OpenCode version: ${oldVersion}`)
+  app.post('/costrict-install-version', async (c) => {
+    const oldVersion = costrictServerManager.getVersion()
+    logger.info(`Current CoStrict version: ${oldVersion}`)
 
     try {
       const body = await c.req.json()
       const { version } = z.object({ version: z.string().min(1) }).parse(body)
 
-      logger.info(`Installing OpenCode version: ${version}`)
+      logger.info(`Installing CoStrict version: ${version}`)
       const versionArg = version.startsWith('v') ? version : `v${version}`
-      const installMethod = getOpenCodeInstallMethod()
-      logger.info(`Running opencode upgrade ${versionArg} --method ${installMethod} with 90s timeout...`)
+      const installMethod = getCoStrictInstallMethod()
+      logger.info(`Running costrict upgrade ${versionArg} --method ${installMethod} with 90s timeout...`)
 
-      const { output: upgradeOutput, timedOut } = execWithTimeout(`opencode upgrade ${versionArg} --method ${installMethod} 2>&1`, 90000)
+      const { output: upgradeOutput, timedOut } = execWithTimeout(`costrict upgrade ${versionArg} --method ${installMethod} 2>&1`, 90000)
       logger.info(`Upgrade output: ${upgradeOutput}`)
 
       if (timedOut) {
-        logger.warn('OpenCode version install timed out after 90 seconds')
+        logger.warn('CoStrict version install timed out after 90 seconds')
         throw new Error('Version install command timed out after 90 seconds')
       }
 
-      const newVersion = await opencodeServerManager.fetchVersion()
-      logger.info(`New OpenCode version: ${newVersion}`)
+      const newVersion = await costrictServerManager.fetchVersion()
+      logger.info(`New CoStrict version: ${newVersion}`)
 
-      opencodeServerManager.clearStartupError()
-      await opencodeServerManager.restart()
-      logger.info('OpenCode server restarted after version change')
+      costrictServerManager.clearStartupError()
+      await costrictServerManager.restart()
+      logger.info('CoStrict server restarted after version change')
 
       return c.json({
         success: true,
-        message: `OpenCode ${oldVersion ? `changed from v${oldVersion} to` : 'installed as'} v${newVersion}`,
+        message: `CoStrict ${oldVersion ? `changed from v${oldVersion} to` : 'installed as'} v${newVersion}`,
         oldVersion,
         newVersion
       })
     } catch (error) {
-      logger.error('Failed to install OpenCode version:', error)
-      logger.warn('Attempting to recover OpenCode server...')
+      logger.error('Failed to install CoStrict version:', error)
+      logger.warn('Attempting to recover CoStrict server...')
 
       let recovered = false
       let recoveryMessage = ''
 
-      opencodeServerManager.clearStartupError()
+      costrictServerManager.clearStartupError()
       try {
-        await opencodeServerManager.restart()
-        logger.warn('OpenCode server restarted after install failure')
+        await costrictServerManager.restart()
+        logger.warn('CoStrict server restarted after install failure')
         recovered = true
         recoveryMessage = 'Server recovered'
       } catch (recoveryError) {
-        logger.error('Failed to recover OpenCode server:', recoveryError)
+        logger.error('Failed to recover CoStrict server:', recoveryError)
         recovered = false
         recoveryMessage = recoveryError instanceof Error ? recoveryError.message : 'Unknown error'
       }
 
-      const currentVersion = opencodeServerManager.getVersion() || oldVersion
+      const currentVersion = costrictServerManager.getVersion() || oldVersion
 
       return c.json(
         recovered ? {
@@ -686,7 +686,7 @@ export function createSettingsRoutes(db: Database) {
           recovered: true,
           recoveryMessage
         } : {
-          error: 'Failed to install OpenCode version and could not recover',
+          error: 'Failed to install CoStrict version and could not recover',
           details: error instanceof Error ? error.message : 'Unknown error',
           oldVersion,
           newVersion: currentVersion,
@@ -823,8 +823,8 @@ export function createSettingsRoutes(db: Database) {
       await writeFileContent(agentsMdPath, content)
       logger.info(`Updated AGENTS.md at: ${agentsMdPath}`)
       
-      await opencodeServerManager.restart()
-      logger.info('Restarted OpenCode server after AGENTS.md update')
+      await costrictServerManager.restart()
+      logger.info('Restarted CoStrict server after AGENTS.md update')
       
       return c.json({ success: true })
     } catch (error) {
@@ -957,14 +957,14 @@ export function createSettingsRoutes(db: Database) {
       const body = await c.req.json()
       const { directory } = ConnectMcpDirectorySchema.parse(body)
       
-      const response = await proxyToOpenCodeWithDirectory(
+      const response = await proxyToCoStrictWithDirectory(
         `/mcp/${encodeURIComponent(serverName)}/connect`,
         'POST',
         directory
       )
       
       if (!response.ok) {
-        const errorMsg = await extractOpenCodeError(response, 'Failed to connect MCP server')
+        const errorMsg = await extractCoStrictError(response, 'Failed to connect MCP server')
         return c.json({ error: errorMsg }, 400)
       }
       
@@ -984,14 +984,14 @@ export function createSettingsRoutes(db: Database) {
       const body = await c.req.json()
       const { directory } = ConnectMcpDirectorySchema.parse(body)
       
-      const response = await proxyToOpenCodeWithDirectory(
+      const response = await proxyToCoStrictWithDirectory(
         `/mcp/${encodeURIComponent(serverName)}/disconnect`,
         'POST',
         directory
       )
       
       if (!response.ok) {
-        const errorMsg = await extractOpenCodeError(response, 'Failed to disconnect MCP server')
+        const errorMsg = await extractCoStrictError(response, 'Failed to disconnect MCP server')
         return c.json({ error: errorMsg }, 400)
       }
       
@@ -1011,14 +1011,14 @@ export function createSettingsRoutes(db: Database) {
       const body = await c.req.json()
       const { directory } = McpAuthDirectorySchema.parse(body)
       
-      const response = await proxyToOpenCodeWithDirectory(
+      const response = await proxyToCoStrictWithDirectory(
         `/mcp/${encodeURIComponent(serverName)}/auth/authenticate`,
         'POST',
         directory,
       )
       
       if (!response.ok) {
-        const errorMsg = await extractOpenCodeError(response, 'Failed to authenticate MCP server')
+        const errorMsg = await extractCoStrictError(response, 'Failed to authenticate MCP server')
         return c.json({ error: errorMsg }, 400)
       }
       
@@ -1038,14 +1038,14 @@ export function createSettingsRoutes(db: Database) {
       const body = await c.req.json()
       const { directory } = ConnectMcpDirectorySchema.parse(body)
       
-      const response = await proxyToOpenCodeWithDirectory(
+      const response = await proxyToCoStrictWithDirectory(
         `/mcp/${encodeURIComponent(serverName)}/auth`,
         'DELETE',
         directory
       )
       
       if (!response.ok) {
-        const errorMsg = await extractOpenCodeError(response, 'Failed to remove MCP auth')
+        const errorMsg = await extractCoStrictError(response, 'Failed to remove MCP auth')
         return c.json({ error: errorMsg }, 400)
       }
       

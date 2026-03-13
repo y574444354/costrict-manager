@@ -5,9 +5,9 @@ import path from 'path'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { storeMcpOAuthFlow, consumeMcpOAuthFlow, deleteMcpOAuthFlow, markMcpOAuthFlowCompleted, markMcpOAuthFlowFailed, getMcpOAuthFlowResult } from '../services/mcp-oauth-state'
 import { logger } from '../utils/logger'
-import { getWorkspacePath, ENV } from '@opencode-manager/shared/config/env'
+import { getWorkspacePath, ENV } from '@costrict-manager/shared/config/env'
 
-const OPENCODE_SERVER_URL = `http://${ENV.OPENCODE.HOST}:${ENV.OPENCODE.PORT}`
+const OPENCODE_SERVER_URL = `http://${ENV.COSTRICT.HOST}:${ENV.COSTRICT.PORT}`
 
 const StartSchema = z.object({
   serverName: z.string(),
@@ -116,7 +116,7 @@ async function registerClient(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       redirect_uris: [callbackUrl],
-      client_name: 'OpenCode Manager',
+      client_name: 'CoStrict Manager',
       client_uri: 'https://opencode.ai',
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],

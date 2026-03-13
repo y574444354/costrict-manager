@@ -1,26 +1,26 @@
-<h1 align="center">@opencode-manager/memory</h1>
+<h1 align="center">@costrict-manager/memory</h1>
 
 <p align="center">
-  <strong>Semantic memory and planning plugin for <a href="https://opencode.ai">OpenCode</a> AI agents</strong>
+  <strong>Semantic memory and planning plugin for <a href="https://costrict.ai">CoStrict</a> AI agents</strong>
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@opencode-manager/memory"><img src="https://img.shields.io/npm/v/@opencode-manager/memory" alt="npm" /></a>
-  <a href="https://www.npmjs.com/package/@opencode-manager/memory"><img src="https://img.shields.io/npm/dm/@opencode-manager/memory" alt="npm downloads" /></a>
-  <a href="https://github.com/chriswritescode-dev/opencode-manager/blob/main/LICENSE"><img src="https://img.shields.io/github/license/chriswritescode-dev/opencode-manager" alt="License" /></a>
+  <a href="https://www.npmjs.com/package/@costrict-manager/memory"><img src="https://img.shields.io/npm/v/@costrict-manager/memory" alt="npm" /></a>
+  <a href="https://www.npmjs.com/package/@costrict-manager/memory"><img src="https://img.shields.io/npm/dm/@costrict-manager/memory" alt="npm downloads" /></a>
+  <a href="https://github.com/chriswritescode-dev/costrict-manager/blob/main/LICENSE"><img src="https://img.shields.io/github/license/chriswritescode-dev/costrict-manager" alt="License" /></a>
 </p>
 
 ## Quick Start
 
 ```bash
-pnpm add @opencode-manager/memory
+pnpm add @costrict-manager/memory
 ```
 
-Add to your `opencode.json`:
+Add to your `costrict.json`:
 
 ```json
 {
-  "plugin": ["@opencode-manager/memory@latest"]
+  "plugin": ["@costrict-manager/memory@latest"]
 }
 ```
 
@@ -167,8 +167,8 @@ ocm-mem cleanup --all --project my-project
 ## Configuration
 
 On first run, the plugin automatically copies the bundled config to your data directory:
-- Path: `~/.local/share/opencode/memory/config.json`
-- Falls back to: `$XDG_DATA_HOME/opencode/memory/config.json`
+- Path: `~/.local/share/costrict/memory/config.json`
+- Falls back to: `$XDG_DATA_HOME/costrict/memory/config.json`
 
 You can edit this file to customize settings. The file is created only if it doesn't already exist.
 
@@ -230,13 +230,13 @@ For API-based embeddings:
 - `embedding.baseUrl` - Custom endpoint (optional, defaults to provider's official API)
 
 #### Storage
-- `dataDir` - Directory for SQLite database storage (default: `"~/.local/share/opencode/memory"`)
+- `dataDir` - Directory for SQLite database storage (default: `"~/.local/share/costrict/memory"`)
 - `dedupThreshold` - Similarity threshold for deduplication (0–1, default: `0.25`, clamped to `0.05–0.40`)
 
 #### Logging
 - `logging.enabled` - Enable file logging (default: `false`)
 - `logging.debug` - Enable debug-level log output (default: `false`)
-- `logging.file` - Log file path. When empty, resolves to `~/.local/share/opencode/memory/logs/memory.log` (default: `""`)
+- `logging.file` - Log file path. When empty, resolves to `~/.local/share/costrict/memory/logs/memory.log` (default: `""`)
 
 When enabled, logs are written to the specified file with timestamps. The log file has a 10MB size limit with automatic rotation.
 

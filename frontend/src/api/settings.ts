@@ -1,10 +1,10 @@
 import type { 
   SettingsResponse, 
   UpdateSettingsRequest, 
-  OpenCodeConfig,
-  OpenCodeConfigResponse,
-  CreateOpenCodeConfigRequest,
-  UpdateOpenCodeConfigRequest
+  CoStrictConfig,
+  CoStrictConfigResponse,
+  CreateCoStrictConfigRequest,
+  UpdateCoStrictConfigRequest
 } from './types/settings'
 import { API_BASE_URL } from '@/config'
 import { fetchWrapper, FetchError } from './fetchWrapper'
@@ -37,17 +37,17 @@ export const settingsApi = {
     })
   },
 
-  getOpenCodeConfigs: async (userId = DEFAULT_USER_ID): Promise<OpenCodeConfigResponse> => {
-    return fetchWrapper(`${API_BASE_URL}/api/settings/opencode-configs`, {
+  getCoStrictConfigs: async (userId = DEFAULT_USER_ID): Promise<CoStrictConfigResponse> => {
+    return fetchWrapper(`${API_BASE_URL}/api/settings/costrict-configs`, {
       params: { userId },
     })
   },
 
-  createOpenCodeConfig: async (
-    request: CreateOpenCodeConfigRequest,
+  createCoStrictConfig: async (
+    request: CreateCoStrictConfigRequest,
     userId = DEFAULT_USER_ID
-  ): Promise<OpenCodeConfig> => {
-    return fetchWrapper(`${API_BASE_URL}/api/settings/opencode-configs`, {
+  ): Promise<CoStrictConfig> => {
+    return fetchWrapper(`${API_BASE_URL}/api/settings/costrict-configs`, {
       method: 'POST',
       params: { userId },
       headers: { 'Content-Type': 'application/json' },
@@ -55,13 +55,13 @@ export const settingsApi = {
     })
   },
 
-  updateOpenCodeConfig: async (
+  updateCoStrictConfig: async (
     configName: string,
-    request: UpdateOpenCodeConfigRequest,
+    request: UpdateCoStrictConfigRequest,
     userId = DEFAULT_USER_ID
-  ): Promise<OpenCodeConfig> => {
+  ): Promise<CoStrictConfig> => {
     return fetchWrapper(
-      `${API_BASE_URL}/api/settings/opencode-configs/${encodeURIComponent(configName)}`,
+      `${API_BASE_URL}/api/settings/costrict-configs/${encodeURIComponent(configName)}`,
       {
         method: 'PUT',
         params: { userId },
@@ -71,12 +71,12 @@ export const settingsApi = {
     )
   },
 
-  deleteOpenCodeConfig: async (
+  deleteCoStrictConfig: async (
     configName: string,
     userId = DEFAULT_USER_ID
   ): Promise<boolean> => {
     await fetchWrapper(
-      `${API_BASE_URL}/api/settings/opencode-configs/${encodeURIComponent(configName)}`,
+      `${API_BASE_URL}/api/settings/costrict-configs/${encodeURIComponent(configName)}`,
       {
         method: 'DELETE',
         params: { userId },
@@ -85,12 +85,12 @@ export const settingsApi = {
     return true
   },
 
-  setDefaultOpenCodeConfig: async (
+  setDefaultCoStrictConfig: async (
     configName: string,
     userId = DEFAULT_USER_ID
-  ): Promise<OpenCodeConfig> => {
+  ): Promise<CoStrictConfig> => {
     return fetchWrapper(
-      `${API_BASE_URL}/api/settings/opencode-configs/${encodeURIComponent(configName)}/set-default`,
+      `${API_BASE_URL}/api/settings/costrict-configs/${encodeURIComponent(configName)}/set-default`,
       {
         method: 'POST',
         params: { userId },
@@ -100,9 +100,9 @@ export const settingsApi = {
     )
   },
 
-  getDefaultOpenCodeConfig: async (userId = DEFAULT_USER_ID): Promise<OpenCodeConfig | null> => {
+  getDefaultCoStrictConfig: async (userId = DEFAULT_USER_ID): Promise<CoStrictConfig | null> => {
     try {
-      return fetchWrapper(`${API_BASE_URL}/api/settings/opencode-configs/default`, {
+      return fetchWrapper(`${API_BASE_URL}/api/settings/costrict-configs/default`, {
         params: { userId },
       })
     } catch {
@@ -110,22 +110,22 @@ export const settingsApi = {
     }
   },
 
-  restartOpenCodeServer: async (): Promise<{ success: boolean; message: string; details?: string }> => {
-    return fetchWrapper(`${API_BASE_URL}/api/settings/opencode-restart`, {
+  restartCoStrictServer: async (): Promise<{ success: boolean; message: string; details?: string }> => {
+    return fetchWrapper(`${API_BASE_URL}/api/settings/costrict-restart`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
   },
 
-  reloadOpenCodeConfig: async (): Promise<{ success: boolean; message: string; details?: string }> => {
+  reloadCoStrictConfig: async (): Promise<{ success: boolean; message: string; details?: string }> => {
     try {
-      return fetchWrapper(`${API_BASE_URL}/api/settings/opencode-reload`, {
+      return fetchWrapper(`${API_BASE_URL}/api/settings/costrict-reload`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
     } catch (error) {
       if (error instanceof FetchError && error.statusCode === 404) {
-        return fetchWrapper(`${API_BASE_URL}/api/settings/opencode-restart`, {
+        return fetchWrapper(`${API_BASE_URL}/api/settings/costrict-restart`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
         })
@@ -134,14 +134,14 @@ export const settingsApi = {
     }
   },
 
-  rollbackOpenCodeConfig: async (): Promise<{ success: boolean; message: string; configName?: string }> => {
-    return fetchWrapper(`${API_BASE_URL}/api/settings/opencode-rollback`, {
+  rollbackCoStrictConfig: async (): Promise<{ success: boolean; message: string; configName?: string }> => {
+    return fetchWrapper(`${API_BASE_URL}/api/settings/costrict-rollback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
   },
 
-  getOpenCodeVersions: async (): Promise<{
+  getCoStrictVersions: async (): Promise<{
     versions: Array<{
       version: string
       tag: string
@@ -150,10 +150,10 @@ export const settingsApi = {
     }>
     currentVersion: string | null
   }> => {
-    return fetchWrapper(`${API_BASE_URL}/api/settings/opencode-versions`)
+    return fetchWrapper(`${API_BASE_URL}/api/settings/costrict-versions`)
   },
 
-  installOpenCodeVersion: async (version: string): Promise<{
+  installCoStrictVersion: async (version: string): Promise<{
     success: boolean
     message: string
     oldVersion?: string
@@ -161,14 +161,14 @@ export const settingsApi = {
     recovered?: boolean
     recoveryMessage?: string
   }> => {
-    return fetchWrapper(`${API_BASE_URL}/api/settings/opencode-install-version`, {
+    return fetchWrapper(`${API_BASE_URL}/api/settings/costrict-install-version`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ version }),
     })
   },
 
-  upgradeOpenCode: async (): Promise<{
+  upgradeCoStrict: async (): Promise<{
     success: boolean
     message: string
     oldVersion?: string
@@ -177,7 +177,7 @@ export const settingsApi = {
     recovered?: boolean
     recoveryMessage?: string
   }> => {
-    return fetchWrapper(`${API_BASE_URL}/api/settings/opencode-upgrade`, {
+    return fetchWrapper(`${API_BASE_URL}/api/settings/costrict-upgrade`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })

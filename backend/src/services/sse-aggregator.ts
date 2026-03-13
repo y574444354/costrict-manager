@@ -1,7 +1,7 @@
 import { EventSource } from 'eventsource'
 import { logger } from '../utils/logger'
-import { ENV } from '@opencode-manager/shared/config/env'
-import { DEFAULTS } from '@opencode-manager/shared/config'
+import { ENV } from '@costrict-manager/shared/config/env'
+import { DEFAULTS } from '@costrict-manager/shared/config'
 
 type SSEClientCallback = (event: string, data: string) => void
 type SSEEventListener = (directory: string, event: SSEEvent) => void
@@ -26,7 +26,7 @@ export interface SSEEvent {
   properties: Record<string, unknown>
 }
 
-const OPENCODE_PORT = ENV.OPENCODE.PORT
+const OPENCODE_PORT = ENV.COSTRICT.PORT
 const { RECONNECT_DELAY_MS, MAX_RECONNECT_DELAY_MS, IDLE_GRACE_PERIOD_MS } = DEFAULTS.SSE
 
 class SSEAggregator {

@@ -1,24 +1,24 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useOpenCodeClient } from './useOpenCode'
+import { useCoStrictClient } from './useClient'
 import type { SSEEvent, MessageWithParts } from '@/api/types'
 import { showToast } from '@/lib/toast'
 import { settingsApi } from '@/api/settings'
 import { useSessionStatus } from '@/stores/sessionStatusStore'
 import { useSessionTodos } from '@/stores/sessionTodosStore'
 import { sseManager, subscribeToSSE, reconnectSSE, addSSEDirectory } from '@/lib/sseManager'
-import { parseOpenCodeError } from '@/lib/opencode-errors'
+import { parseCoStrictError } from '@/lib/errors'
 import { createPartsBatcher } from '@/lib/partsBatcher'
 
 const handleRestartServer = async () => {
-  showToast.loading('Reloading OpenCode configuration...', {
+  showToast.loading('Reloading CoStrict configuration...', {
     id: 'restart-server',
   })
 
   try {
-    const result = await settingsApi.reloadOpenCodeConfig()
+    const result = await settingsApi.reloadCoStrictConfig()
     if (result.success) {
-      showToast.success(result.message || 'OpenCode configuration reloaded successfully', {
+      showToast.success(result.message || 'CoStrict configuration reloaded successfully', {
         id: 'restart-server',
         duration: 3000,
       })
@@ -26,13 +26,13 @@ const handleRestartServer = async () => {
         window.location.reload()
       }, 2000)
     } else {
-      showToast.error(result.message || 'Failed to reload OpenCode configuration', {
+      showToast.error(result.message || 'Failed to reload CoStrict configuration', {
         id: 'restart-server',
         duration: 5000,
       })
     }
   } catch (error) {
-    showToast.error(error instanceof Error ? error.message : 'Failed to reload OpenCode configuration', {
+    showToast.error(error instanceof Error ? error.message : 'Failed to reload CoStrict configuration', {
       id: 'restart-server',
       duration: 5000,
     })
@@ -40,8 +40,8 @@ const handleRestartServer = async () => {
 }
 
 
-export const useSSE = (opcodeUrl: string | null | undefined, directory?: string, currentSessionId?: string) => {
-  const client = useOpenCodeClient(opcodeUrl, directory)
+export const useSSE = (costrictUrl: string | null | undefined, directory?: string, currentSessionId?: string) => {
+  const client = useCoStrictClient(costrictUrl, directory)
   const queryClient = useQueryClient()
   const mountedRef = useRef(true)
   const sessionIdRef = useRef(currentSessionId)
@@ -54,36 +54,36 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
   const batcherRef = useRef<ReturnType<typeof createPartsBatcher> | null>(null)
 
   useEffect(() => {
-    if (!opcodeUrl) {
+    if (!costrictUrl) {
       batcherRef.current?.destroy()
       batcherRef.current = null
       return
     }
 
-    batcherRef.current = createPartsBatcher(queryClient, opcodeUrl, directory)
+    batcherRef.current = createPartsBatcher(queryClient, costrictUrl, directory)
 
     return () => {
       batcherRef.current?.destroy()
       batcherRef.current = null
     }
-  }, [queryClient, opcodeUrl, directory])
+  }, [queryClient, costrictUrl, directory])
 
   const handleSSEEvent = useCallback((event: SSEEvent) => {
     switch (event.type) {
       case 'session.updated':
-        queryClient.invalidateQueries({ queryKey: ['opencode', 'sessions', opcodeUrl, directory] })
+        queryClient.invalidateQueries({ queryKey: ['costrict', 'sessions', costrictUrl, directory] })
         if ('info' in event.properties) {
           queryClient.invalidateQueries({ 
-            queryKey: ['opencode', 'session', opcodeUrl, event.properties.info.id, directory] 
+            queryKey: ['costrict', 'session', costrictUrl, event.properties.info.id, directory] 
           })
         }
         break
 
       case 'session.deleted':
-        queryClient.invalidateQueries({ queryKey: ['opencode', 'sessions', opcodeUrl, directory] })
+        queryClient.invalidateQueries({ queryKey: ['costrict', 'sessions', costrictUrl, directory] })
         if ('sessionID' in event.properties) {
           queryClient.invalidateQueries({ 
-            queryKey: ['opencode', 'session', opcodeUrl, event.properties.sessionID, directory] 
+            queryKey: ['costrict', 'session', costrictUrl, event.properties.sessionID, directory] 
           })
         }
         break
@@ -115,7 +115,7 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
           setSessionStatus(sessionID, isComplete ? { type: 'idle' } : { type: 'busy' })
         }
         
-        const messagesQueryKey = ['opencode', 'messages', opcodeUrl, sessionID, directory]
+        const messagesQueryKey = ['costrict', 'messages', costrictUrl, sessionID, directory]
         const currentData = queryClient.getQueryData<MessageWithParts[]>(messagesQueryKey)
         if (!currentData) {
           queryClient.invalidateQueries({ queryKey: messagesQueryKey })
@@ -148,7 +148,7 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
         const { sessionID, messageID } = event.properties
         
         queryClient.setQueryData<MessageWithParts[]>(
-          ['opencode', 'messages', opcodeUrl, sessionID, directory],
+          ['costrict', 'messages', costrictUrl, sessionID, directory],
           (old) => {
             if (!old) return old
             return old.filter(msgWithParts => msgWithParts.info.id !== messageID)
@@ -175,7 +175,7 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
         showToast.dismiss(`compact-${sessionID}`)
         showToast.success('Session compacted')
         queryClient.invalidateQueries({ 
-          queryKey: ['opencode', 'messages', opcodeUrl, sessionID, directory] 
+          queryKey: ['costrict', 'messages', costrictUrl, sessionID, directory] 
         })
         break
       }
@@ -189,7 +189,7 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
         
         batcherRef.current?.flush()
         
-        const messagesQueryKey = ['opencode', 'messages', opcodeUrl, sessionID, directory]
+        const messagesQueryKey = ['costrict', 'messages', costrictUrl, sessionID, directory]
         const currentData = queryClient.getQueryData<MessageWithParts[]>(messagesQueryKey)
         if (!currentData) break
         
@@ -238,14 +238,14 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
           const { sessionID, todos } = event.properties
           setSessionTodos(sessionID, todos)
           queryClient.invalidateQueries({ 
-            queryKey: ['opencode', 'todos', opcodeUrl, sessionID, directory] 
+            queryKey: ['costrict', 'todos', costrictUrl, sessionID, directory] 
           })
         }
         break
 
       case 'installation.updated':
         if ('version' in event.properties) {
-          showToast.success(`OpenCode updated to v${event.properties.version}`, {
+          showToast.success(`CoStrict updated to v${event.properties.version}`, {
             description: 'The server has been successfully upgraded.',
             duration: 5000,
           })
@@ -254,7 +254,7 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
 
       case 'installation.update-available':
         if ('version' in event.properties) {
-          showToast.info(`OpenCode v${event.properties.version} is available`, {
+          showToast.info(`CoStrict v${event.properties.version} is available`, {
             description: 'A new version is ready to install.',
             action: {
               label: 'Reload to Update',
@@ -272,7 +272,7 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
         const error = event.properties.error
         if (error?.name === 'MessageAbortedError') break
         
-        const parsed = parseOpenCodeError(error)
+        const parsed = parseCoStrictError(error)
         if (parsed) {
           showToast.error(parsed.title, {
             description: parsed.message,
@@ -287,7 +287,7 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
         if (!('sessionID' in event.properties)) break
         const { sessionID } = event.properties
         queryClient.invalidateQueries({ 
-          queryKey: ['opencode', 'messages', opcodeUrl, sessionID, directory] 
+          queryKey: ['costrict', 'messages', costrictUrl, sessionID, directory] 
         })
         break
       }
@@ -295,7 +295,7 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
       default:
         break
     }
-  }, [queryClient, opcodeUrl, directory, setSessionStatus, setSessionTodos, currentSessionId])
+  }, [queryClient, costrictUrl, directory, setSessionStatus, setSessionTodos, currentSessionId])
 
   const fetchInitialData = useCallback(async () => {
     if (!client || !mountedRef.current) return
@@ -317,7 +317,7 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
   useEffect(() => {
     mountedRef.current = true
     
-    if (!opcodeUrl) {
+    if (!costrictUrl) {
       setIsConnected(false)
       return
     }
@@ -366,7 +366,7 @@ export const useSSE = (opcodeUrl: string | null | undefined, directory?: string,
       unsubscribe()
       directoryCleanup?.()
     }
-  }, [opcodeUrl, directory, handleSSEEvent, fetchInitialData])
+  }, [costrictUrl, directory, handleSSEEvent, fetchInitialData])
 
   useEffect(() => {
     if (isConnected && document.visibilityState === 'visible') {

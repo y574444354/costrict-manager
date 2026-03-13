@@ -9,12 +9,12 @@ interface HealthResponse {
   status: 'healthy' | 'degraded' | 'unhealthy'
   timestamp: string
   database: 'connected' | 'disconnected'
-  opencode: 'healthy' | 'unhealthy'
-  opencodePort: number
-  opencodeVersion: string | null
-  opencodeMinVersion: string
-  opencodeVersionSupported: boolean
-  opencodeManagerVersion: string | null
+  costrict: 'healthy' | 'unhealthy'
+  costrictPort: number
+  costrictVersion: string | null
+  costrictMinVersion: string
+  costrictVersionSupported: boolean
+  costrictManagerVersion: string | null
   error?: string
 }
 
@@ -29,7 +29,7 @@ export function useServerHealth(enabled = true) {
 
   const restartMutation = useMutation({
     mutationFn: async () => {
-      return await settingsApi.reloadOpenCodeConfig()
+      return await settingsApi.reloadCoStrictConfig()
     },
     onSuccess: () => {
       invalidateConfigCaches(queryClient)
@@ -47,7 +47,7 @@ export function useServerHealth(enabled = true) {
 
   const rollbackMutation = useMutation({
     mutationFn: async () => {
-      return await settingsApi.rollbackOpenCodeConfig()
+      return await settingsApi.rollbackCoStrictConfig()
     },
     onSuccess: (data) => {
       invalidateSettingsCaches(queryClient)
@@ -72,14 +72,14 @@ export function useServerHealth(enabled = true) {
   useEffect(() => {
     if (!health) return
 
-    const isUnhealthy = health.opencode !== 'healthy'
+    const isUnhealthy = health.costrict !== 'healthy'
     const currentStatus = isUnhealthy ? 'unhealthy' : 'healthy'
     const previousStatus = lastHealthStatusRef.current
     const prevHealth = prevHealthRef.current
 
     if (prevHealth && currentStatus !== prevHealth) {
       if (isUnhealthy && previousStatus === 'healthy') {
-        toast.error(health.error || 'OpenCode server is currently unhealthy', {
+        toast.error(health.error || 'CoStrict server is currently unhealthy', {
           duration: Infinity,
           action: {
             label: 'Reload',

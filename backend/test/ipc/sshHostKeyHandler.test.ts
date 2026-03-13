@@ -4,7 +4,7 @@ import * as crypto from 'crypto'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 
-vi.mock('@opencode-manager/shared/config/env', () => ({
+vi.mock('@costrict-manager/shared/config/env', () => ({
   ENV: {
     AUTH: {
       SECRET: 'test-secret-for-encryption'

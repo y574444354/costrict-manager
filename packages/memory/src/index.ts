@@ -497,7 +497,7 @@ export function createMemoryPlugin(config: PluginConfig): Plugin {
           execute: async (args) => {
             if (args.action === 'upgrade') {
               const result = await performUpgrade(async (cacheDir, version) => {
-                const pkg = `@opencode-manager/memory@${version}`
+                const pkg = `@costrict-manager/memory@${version}`
                 const output = await input.$`bun add --force --no-cache --exact --cwd ${cacheDir} ${pkg}`.nothrow().quiet()
                 return { exitCode: output.exitCode, stderr: output.stderr.toString() }
               })

@@ -106,7 +106,7 @@ describe('resolveConfigPath', () => {
   test('falls back to ~/.local/share when XDG_DATA_HOME is unset', () => {
     delete process.env['XDG_DATA_HOME']
     const configPath = resolveConfigPath()
-    const expectedDefault = join(homedir(), '.local', 'share', 'opencode', 'memory', 'config.json')
+    const expectedDefault = join(homedir(), '.local', 'share', 'costrict', 'memory', 'config.json')
     expect(configPath).toBe(expectedDefault)
   })
 })

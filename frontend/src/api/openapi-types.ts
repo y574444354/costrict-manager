@@ -13,7 +13,7 @@ export interface paths {
         };
         /**
          * Get health
-         * @description Get health information about the OpenCode server.
+         * @description Get health information about the CoStrict server.
          */
         get: operations["global.health"];
         put?: never;
@@ -33,7 +33,7 @@ export interface paths {
         };
         /**
          * Get global events
-         * @description Subscribe to global events from the OpenCode system using server-sent events.
+         * @description Subscribe to global events from the CoStrict system using server-sent events.
          */
         get: operations["global.event"];
         put?: never;
@@ -55,7 +55,7 @@ export interface paths {
         put?: never;
         /**
          * Dispose instance
-         * @description Clean up and dispose all OpenCode instances, releasing all resources.
+         * @description Clean up and dispose all CoStrict instances, releasing all resources.
          */
         post: operations["global.dispose"];
         delete?: never;
@@ -73,7 +73,7 @@ export interface paths {
         };
         /**
          * List all projects
-         * @description Get a list of projects that have been opened with OpenCode.
+         * @description Get a list of projects that have been opened with CoStrict.
          */
         get: operations["project.list"];
         put?: never;
@@ -93,7 +93,7 @@ export interface paths {
         };
         /**
          * Get current project
-         * @description Retrieve the currently active project that OpenCode is working with.
+         * @description Retrieve the currently active project that CoStrict is working with.
          */
         get: operations["project.current"];
         put?: never;
@@ -133,7 +133,7 @@ export interface paths {
         };
         /**
          * List PTY sessions
-         * @description Get a list of all active pseudo-terminal (PTY) sessions managed by OpenCode.
+         * @description Get a list of all active pseudo-terminal (PTY) sessions managed by CoStrict.
          */
         get: operations["pty.list"];
         put?: never;
@@ -205,7 +205,7 @@ export interface paths {
         };
         /**
          * Get configuration
-         * @description Retrieve the current OpenCode configuration settings and preferences.
+         * @description Retrieve the current CoStrict configuration settings and preferences.
          */
         get: operations["config.get"];
         put?: never;
@@ -215,7 +215,7 @@ export interface paths {
         head?: never;
         /**
          * Update configuration
-         * @description Update OpenCode configuration settings and preferences.
+         * @description Update CoStrict configuration settings and preferences.
          */
         patch: operations["config.update"];
         trace?: never;
@@ -271,7 +271,7 @@ export interface paths {
         put?: never;
         /**
          * Dispose instance
-         * @description Clean up and dispose the current OpenCode instance, releasing all resources.
+         * @description Clean up and dispose the current CoStrict instance, releasing all resources.
          */
         post: operations["instance.dispose"];
         delete?: never;
@@ -289,7 +289,7 @@ export interface paths {
         };
         /**
          * Get paths
-         * @description Retrieve the current working directory and related path information for the OpenCode instance.
+         * @description Retrieve the current working directory and related path information for the CoStrict instance.
          */
         get: operations["path.get"];
         put?: never;
@@ -353,13 +353,13 @@ export interface paths {
         };
         /**
          * List sessions
-         * @description Get a list of all OpenCode sessions, sorted by most recently updated.
+         * @description Get a list of all CoStrict sessions, sorted by most recently updated.
          */
         get: operations["session.list"];
         put?: never;
         /**
          * Create session
-         * @description Create a new OpenCode session for interacting with AI assistants and managing conversations.
+         * @description Create a new CoStrict session for interacting with AI assistants and managing conversations.
          */
         post: operations["session.create"];
         delete?: never;
@@ -397,7 +397,7 @@ export interface paths {
         };
         /**
          * Get session
-         * @description Retrieve detailed information about a specific OpenCode session.
+         * @description Retrieve detailed information about a specific CoStrict session.
          */
         get: operations["session.get"];
         put?: never;
@@ -872,7 +872,7 @@ export interface paths {
         };
         /**
          * List commands
-         * @description Get a list of all available commands in the OpenCode system.
+         * @description Get a list of all available commands in the CoStrict system.
          */
         get: operations["command.list"];
         put?: never;
@@ -1132,7 +1132,7 @@ export interface paths {
         };
         /**
          * List agents
-         * @description Get a list of all available AI agents in the OpenCode system.
+         * @description Get a list of all available AI agents in the CoStrict system.
          */
         get: operations["app.agents"];
         put?: never;

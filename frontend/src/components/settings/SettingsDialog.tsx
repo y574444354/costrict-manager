@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { GeneralSettings } from '@/components/settings/GeneralSettings'
 import { GitSettings } from '@/components/settings/GitSettings'
 import { KeyboardShortcuts } from '@/components/settings/KeyboardShortcuts'
-import { OpenCodeConfigManager } from '@/components/settings/OpenCodeConfigManager'
+import { ConfigManager } from '@/components/settings/ConfigManager'
 import { ProviderSettings } from '@/components/settings/ProviderSettings'
 import { AccountSettings } from '@/components/settings/AccountSettings'
 import { VoiceSettings } from '@/components/settings/VoiceSettings'
@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { useSwipeBack } from '@/hooks/useMobile'
 import { useSettingsDialog } from '@/hooks/useSettingsDialog'
 
-type SettingsView = 'menu' | 'general' | 'git' | 'shortcuts' | 'opencode' | 'providers' | 'account' | 'voice' | 'notifications'
+type SettingsView = 'menu' | 'general' | 'git' | 'shortcuts' | 'costrict' | 'providers' | 'account' | 'voice' | 'notifications'
 
 export function SettingsDialog() {
   const { isOpen, close, activeTab, setActiveTab } = useSettingsDialog()
@@ -57,7 +57,7 @@ export function SettingsDialog() {
     { id: 'voice', icon: Volume2, label: 'Voice', description: 'Text-to-speech and speech-to-text settings' },
     { id: 'git', icon: GitBranch, label: 'Git', description: 'Git identity and credentials for repositories' },
     { id: 'shortcuts', icon: Keyboard, label: 'Keyboard Shortcuts', description: 'Customize keyboard shortcuts' },
-    { id: 'opencode', icon: Code, label: 'OpenCode Config', description: 'Manage OpenCode configurations, commands, and agents' },
+    { id: 'costrict', icon: Code, label: 'CoStrict Config', description: 'Manage CoStrict configurations, commands, and agents' },
     { id: 'providers', icon: Key, label: 'Providers', description: 'Manage AI provider API keys' },
   ]
 
@@ -108,8 +108,8 @@ export function SettingsDialog() {
                 <TabsTrigger value="shortcuts" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-muted-foreground transition-all duration-200">
                   Shortcuts
                 </TabsTrigger>
-                <TabsTrigger value="opencode" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-muted-foreground transition-all duration-200">
-                  OpenCode
+                <TabsTrigger value="costrict" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-muted-foreground transition-all duration-200">
+                  CoStrict
                 </TabsTrigger>
                 <TabsTrigger value="providers" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-muted-foreground transition-all duration-200">
                   Providers
@@ -125,7 +125,7 @@ export function SettingsDialog() {
                 <TabsContent key="voice" value="voice" className="mt-0"><VoiceSettings /></TabsContent>
                 <TabsContent key="git" value="git" className="mt-0"><GitSettings /></TabsContent>
                 <TabsContent key="shortcuts" value="shortcuts" className="mt-0"><KeyboardShortcuts /></TabsContent>
-                <TabsContent key="opencode" value="opencode" className="mt-0"><OpenCodeConfigManager /></TabsContent>
+                <TabsContent key="costrict" value="costrict" className="mt-0"><ConfigManager /></TabsContent>
                 <TabsContent key="providers" value="providers" className="mt-0"><ProviderSettings /></TabsContent>
               </div>
             </div>
@@ -191,7 +191,7 @@ export function SettingsDialog() {
              {mobileView === 'voice' && <div key="voice"><VoiceSettings /></div>}
              {mobileView === 'git' && <div key="git"><GitSettings /></div>}
              {mobileView === 'shortcuts' && <div key="shortcuts"><KeyboardShortcuts /></div>}
-             {mobileView === 'opencode' && <div key="opencode"><OpenCodeConfigManager /></div>}
+             {mobileView === 'costrict' && <div key="costrict"><ConfigManager /></div>}
              {mobileView === 'providers' && <div key="providers"><ProviderSettings /></div>}
            </div>
         </div>

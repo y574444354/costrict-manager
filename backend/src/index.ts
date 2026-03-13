@@ -39,7 +39,7 @@ import { createAuthMiddleware } from './auth/middleware'
 import { sseAggregator } from './services/sse-aggregator'
 import { ensureDirectoryExists, writeFileContent, fileExists, readFileContent } from './services/file-operations'
 import { SettingsService } from './services/settings'
-import { opencodeServerManager } from './services/opencode-single-server'
+import { costrictServerManager } from './services/costrict-server'
 import { proxyRequest, proxyMcpAuthStart, proxyMcpAuthAuthenticate } from './services/proxy'
 import { NotificationService } from './services/notification'
 
@@ -48,12 +48,12 @@ import {
   getWorkspacePath, 
   getReposPath, 
   getConfigPath,
-  getOpenCodeConfigFilePath,
+  getCoStrictConfigFilePath,
   getAgentsMdPath,
   getDatabasePath,
   ENV
-} from '@opencode-manager/shared/config/env'
-import { OpenCodeConfigSchema } from '@opencode-manager/shared/schemas'
+} from '@costrict-manager/shared/config/env'
+import { CoStrictConfigSchema } from '@costrict-manager/shared/schemas'
 import { parse as parseJsonc } from 'jsonc-parser'
 
 const { PORT, HOST } = ENV.SERVER
@@ -84,27 +84,27 @@ const gitAuthService = new GitAuthService()
 
 async function ensureDefaultConfigExists(): Promise<void> {
   const settingsService = new SettingsService(db)
-  const workspaceConfigPath = getOpenCodeConfigFilePath()
+  const workspaceConfigPath = getCoStrictConfigFilePath()
   
   if (await fileExists(workspaceConfigPath)) {
     logger.info(`Found workspace config at ${workspaceConfigPath}, syncing to database...`)
     try {
       const rawContent = await readFileContent(workspaceConfigPath)
       const parsed = parseJsonc(rawContent)
-      const validation = OpenCodeConfigSchema.safeParse(parsed)
+      const validation = CoStrictConfigSchema.safeParse(parsed)
       
       if (!validation.success) {
         logger.warn('Workspace config has invalid structure', validation.error)
       } else {
-        const existingDefault = settingsService.getOpenCodeConfigByName('default')
+        const existingDefault = settingsService.getCoStrictConfigByName('default')
         if (existingDefault) {
-          settingsService.updateOpenCodeConfig('default', {
+          settingsService.updateCoStrictConfig('default', {
             content: rawContent,
             isDefault: true,
           })
           logger.info('Updated database config from workspace file')
         } else {
-          settingsService.createOpenCodeConfig({
+          settingsService.createCoStrictConfig({
             name: 'default',
             content: rawContent,
             isDefault: true,
@@ -118,23 +118,23 @@ async function ensureDefaultConfigExists(): Promise<void> {
     }
   }
   
-  const homeConfigPath = path.join(os.homedir(), '.config/opencode/opencode.json')
+  const homeConfigPath = path.join(os.homedir(), '.config/costrict/costrict.json')
   if (await fileExists(homeConfigPath)) {
     logger.info(`Found home config at ${homeConfigPath}, importing...`)
     try {
       const rawContent = await readFileContent(homeConfigPath)
       const parsed = parseJsonc(rawContent)
-      const validation = OpenCodeConfigSchema.safeParse(parsed)
+      const validation = CoStrictConfigSchema.safeParse(parsed)
       
       if (validation.success) {
-        const existingDefault = settingsService.getOpenCodeConfigByName('default')
+        const existingDefault = settingsService.getCoStrictConfigByName('default')
         if (existingDefault) {
-          settingsService.updateOpenCodeConfig('default', {
+          settingsService.updateCoStrictConfig('default', {
             content: rawContent,
             isDefault: true,
           })
         } else {
-          settingsService.createOpenCodeConfig({
+          settingsService.createCoStrictConfig({
             name: 'default',
             content: rawContent,
             isDefault: true,
@@ -150,9 +150,9 @@ async function ensureDefaultConfigExists(): Promise<void> {
     }
   }
   
-  const existingDbConfigs = settingsService.getOpenCodeConfigs()
+  const existingDbConfigs = settingsService.getCostrictConfigs()
   if (existingDbConfigs.configs.length > 0) {
-    const defaultConfig = settingsService.getDefaultOpenCodeConfig()
+    const defaultConfig = settingsService.getDefaultCoStrictConfig()
     if (defaultConfig) {
       await writeFileContent(workspaceConfigPath, defaultConfig.rawContent)
       logger.info('Wrote existing database config to workspace file')
@@ -161,8 +161,8 @@ async function ensureDefaultConfigExists(): Promise<void> {
   }
   
   logger.info('No existing config found, creating minimal seed config')
-  const seedConfig = JSON.stringify({ $schema: 'https://opencode.ai/config.json' }, null, 2)
-  settingsService.createOpenCodeConfig({
+  const seedConfig = JSON.stringify({ $schema: 'https://costrict.ai/config.json' }, null, 2)
+  settingsService.createCoStrictConfig({
     name: 'default',
     content: seedConfig,
     isDefault: true,
@@ -202,13 +202,18 @@ try {
   const settingsService = new SettingsService(db)
   settingsService.initializeLastKnownGoodConfig()
 
-  ipcServer = await createIPCServer(process.env.STORAGE_PATH || undefined)
-  await gitAuthService.initialize(ipcServer, db)
-  logger.info(`Git IPC server running at ${ipcServer.ipcHandlePath}`)
+  // Initialize IPC server for Git authentication (non-critical)
+  try {
+    ipcServer = await createIPCServer(process.env.STORAGE_PATH || undefined)
+    await gitAuthService.initialize(ipcServer, db)
+    logger.info(`Git IPC server running at ${ipcServer.ipcHandlePath}`)
+  } catch (error) {
+    logger.warn('Failed to initialize Git IPC server, Git credential helper will not be available:', error)
+  }
 
-  opencodeServerManager.setDatabase(db)
-  await opencodeServerManager.start()
-  logger.info(`OpenCode server running on port ${opencodeServerManager.getPort()}`)
+  costrictServerManager.setDatabase(db)
+  await costrictServerManager.start()
+  logger.info(`CoStrict server running on port ${costrictServerManager.getPort()}`)
 
   await syncAdminFromEnv(auth, db)
 } catch (error) {
@@ -260,19 +265,19 @@ protectedApi.route('/memory', createMemoryRoutes(db))
 
 app.route('/api', protectedApi)
 
-app.post('/api/opencode/mcp/:name/auth', requireAuth, async (c) => {
+app.post('/api/costrict/mcp/:name/auth', requireAuth, async (c) => {
   const serverName = c.req.param('name')
   const directory = c.req.query('directory')
   return proxyMcpAuthStart(serverName, directory)
 })
 
-app.post('/api/opencode/mcp/:name/auth/authenticate', requireAuth, async (c) => {
+app.post('/api/costrict/mcp/:name/auth/authenticate', requireAuth, async (c) => {
   const serverName = c.req.param('name')
   const directory = c.req.query('directory')
   return proxyMcpAuthAuthenticate(serverName, directory)
 })
 
-app.all('/api/opencode/*', requireAuth, async (c) => {
+app.all('/api/costrict/*', requireAuth, async (c) => {
   const request = c.req.raw
   return proxyRequest(request)
 })
@@ -305,7 +310,7 @@ if (isProduction) {
   app.get('/', async (c) => {
     const version = await getAppVersion()
     return c.json({
-      name: 'OpenCode WebUI',
+      name: 'CoStrict WebUI',
       version,
       status: 'running',
       endpoints: {
@@ -315,7 +320,7 @@ if (isProduction) {
         sessions: '/api/sessions',
         files: '/api/files',
         providers: '/api/providers',
-        opencode_proxy: '/api/opencode/*'
+        costrict_proxy: '/api/costrict/*'
       }
     })
   })
@@ -359,8 +364,8 @@ const shutdown = async (signal: string) => {
       await ipcServer.dispose()
       logger.info('Git IPC server stopped')
     }
-    await opencodeServerManager.stop()
-    logger.info('OpenCode server stopped')
+    await costrictServerManager.stop()
+    logger.info('CoStrict server stopped')
   } catch (error) {
     logger.error('Error during shutdown:', error)
   }
@@ -376,4 +381,4 @@ serve({
   hostname: HOST,
 })
 
-logger.info(`🚀 OpenCode WebUI API running on http://${HOST}:${PORT}`)
+logger.info(`🚀 CoStrict WebUI API running on http://${HOST}:${PORT}`)

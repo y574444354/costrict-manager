@@ -13,9 +13,9 @@ import {
   getFileStats, 
   listDirectory 
 } from './file-operations'
-import { getReposPath, FILE_LIMITS } from '@opencode-manager/shared/config/env'
-import { ALLOWED_MIME_TYPES, type AllowedMimeType } from '@opencode-manager/shared'
-import type { ChunkedFileInfo, PatchOperation } from '@opencode-manager/shared'
+import { getReposPath, FILE_LIMITS } from '@costrict-manager/shared/config/env'
+import { ALLOWED_MIME_TYPES, type AllowedMimeType } from '@costrict-manager/shared'
+import type { ChunkedFileInfo, PatchOperation } from '@costrict-manager/shared'
 
 const SHARED_WORKSPACE_BASE = getReposPath()
 

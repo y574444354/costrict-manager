@@ -1,11 +1,11 @@
 import { Hono } from 'hono'
 import type { Database } from 'bun:sqlite'
 import { readFile } from 'fs/promises'
-import { opencodeServerManager } from '../services/opencode-single-server'
+import { costrictServerManager } from '../services/costrict-server'
 import { compareVersions } from '../utils/version-utils'
 
 const GITHUB_REPO_OWNER = 'chriswritescode-dev'
-const GITHUB_REPO_NAME = 'opencode-manager'
+const GITHUB_REPO_NAME = 'costrict-manager'
 
 interface CachedRelease {
   tagName: string
@@ -28,7 +28,7 @@ async function fetchLatestRelease(): Promise<CachedRelease | null> {
       {
         headers: {
           'Accept': 'application/vnd.github+json',
-          'User-Agent': 'OpenCode-Manager'
+          'User-Agent': 'CoStrict-Manager'
         }
       }
     )
@@ -55,7 +55,7 @@ async function fetchLatestRelease(): Promise<CachedRelease | null> {
   }
 }
 
-const opencodeManagerVersionPromise = (async (): Promise<string | null> => {
+const costrictManagerVersionPromise = (async (): Promise<string | null> => {
   try {
     const packageUrl = new URL('../../../package.json', import.meta.url)
     const packageJsonRaw = await readFile(packageUrl, 'utf-8')
@@ -71,38 +71,38 @@ export function createHealthRoutes(db: Database) {
 
   app.get('/', async (c) => {
     try {
-      const opencodeManagerVersion = await opencodeManagerVersionPromise
+      const costrictManagerVersion = await costrictManagerVersionPromise
       const dbCheck = db.prepare('SELECT 1').get()
-      const opencodeHealthy = await opencodeServerManager.checkHealth()
-      const startupError = opencodeServerManager.getLastStartupError()
+      const costrictHealthy = await costrictServerManager.checkHealth()
+      const startupError = costrictServerManager.getLastStartupError()
 
-      const status = startupError && !opencodeHealthy
+      const status = startupError && !costrictHealthy
         ? 'unhealthy'
-        : (dbCheck && opencodeHealthy ? 'healthy' : 'degraded')
+        : (dbCheck && costrictHealthy ? 'healthy' : 'degraded')
 
       const response: Record<string, unknown> = {
         status,
         timestamp: new Date().toISOString(),
         database: dbCheck ? 'connected' : 'disconnected',
-        opencode: opencodeHealthy ? 'healthy' : 'unhealthy',
-        opencodePort: opencodeServerManager.getPort(),
-        opencodeVersion: opencodeServerManager.getVersion(),
-        opencodeMinVersion: opencodeServerManager.getMinVersion(),
-        opencodeVersionSupported: opencodeServerManager.isVersionSupported(),
-        opencodeManagerVersion,
+        costrict: costrictHealthy ? 'healthy' : 'unhealthy',
+        costrictPort: costrictServerManager.getPort(),
+        costrictVersion: costrictServerManager.getVersion(),
+        costrictMinVersion: costrictServerManager.getMinVersion(),
+        costrictVersionSupported: costrictServerManager.isVersionSupported(),
+        costrictManagerVersion,
       }
 
-      if (startupError && !opencodeHealthy) {
+      if (startupError && !costrictHealthy) {
         response.error = startupError
       }
 
       return c.json(response)
     } catch (error) {
-      const opencodeManagerVersion = await opencodeManagerVersionPromise
+      const costrictManagerVersion = await costrictManagerVersionPromise
       return c.json({
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
-        opencodeManagerVersion,
+        costrictManagerVersion,
         error: error instanceof Error ? error.message : 'Unknown error'
       }, 503)
     }
@@ -110,11 +110,11 @@ export function createHealthRoutes(db: Database) {
 
   app.get('/processes', async (c) => {
     try {
-      const opencodeHealthy = await opencodeServerManager.checkHealth()
+      const opencodeHealthy = await costrictServerManager.checkHealth()
       
       return c.json({
         opencode: {
-          port: opencodeServerManager.getPort(),
+          port: costrictServerManager.getPort(),
           healthy: opencodeHealthy
         },
         timestamp: new Date().toISOString()
@@ -128,7 +128,7 @@ export function createHealthRoutes(db: Database) {
   })
 
   app.get('/version', async (c) => {
-    const currentVersion = await opencodeManagerVersionPromise
+    const currentVersion = await costrictManagerVersionPromise
     const latestRelease = await fetchLatestRelease()
 
     if (!currentVersion) {

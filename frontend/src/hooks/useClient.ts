@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useEffect, useCallback, useState } from "react";
-import { OpenCodeClient } from "../api/opencode";
+import { CoStrictClient } from "../api/client";
 import { API_BASE_URL } from "../config";
 import { fetchWrapper } from "../api/fetchWrapper";
 import type {
@@ -9,8 +9,8 @@ import type {
   ContentPart,
   MessageWithParts,
 } from "../api/types";
-import type { paths, components } from "../api/opencode-types";
-import { parseNetworkError } from "../lib/opencode-errors";
+import type { paths, components } from "../api/openapi-types";
+import { parseNetworkError } from "../lib/errors";
 import { showToast } from "../lib/toast";
 import { useSessionStatus } from "../stores/sessionStatusStore";
 import { ensureSSEConnected, reconnectSSE } from "../lib/sseManager";
@@ -46,18 +46,18 @@ type SendPromptRequest = NonNullable<
   paths["/session/{sessionID}/message"]["post"]["requestBody"]
 >["content"]["application/json"];
 
-export const useOpenCodeClient = (opcodeUrl: string | null | undefined, directory?: string) => {
+export const useCoStrictClient = (costrictUrl: string | null | undefined, directory?: string) => {
   return useMemo(
-    () => (opcodeUrl ? new OpenCodeClient(opcodeUrl, directory) : null),
-    [opcodeUrl, directory],
+    () => (costrictUrl ? new CoStrictClient(costrictUrl, directory) : null),
+    [costrictUrl, directory],
   );
 };
 
-export const useSessions = (opcodeUrl: string | null | undefined, directory?: string) => {
-  const client = useOpenCodeClient(opcodeUrl, directory);
+export const useSessions = (costrictUrl: string | null | undefined, directory?: string) => {
+  const client = useCoStrictClient(costrictUrl, directory);
 
   return useQuery({
-    queryKey: ["opencode", "sessions", opcodeUrl, directory],
+    queryKey: ["costrict", "sessions", costrictUrl, directory],
     queryFn: () => client!.listSessions(),
     enabled: !!client,
     refetchOnWindowFocus: true,
@@ -66,11 +66,11 @@ export const useSessions = (opcodeUrl: string | null | undefined, directory?: st
   });
 };
 
-export const useSession = (opcodeUrl: string | null | undefined, sessionID: string | undefined, directory?: string) => {
-  const client = useOpenCodeClient(opcodeUrl, directory);
+export const useSession = (costrictUrl: string | null | undefined, sessionID: string | undefined, directory?: string) => {
+  const client = useCoStrictClient(costrictUrl, directory);
 
   return useQuery({
-    queryKey: ["opencode", "session", opcodeUrl, sessionID, directory],
+    queryKey: ["costrict", "session", costrictUrl, sessionID, directory],
     queryFn: () => client!.getSession(sessionID!),
     enabled: !!client && !!sessionID,
     refetchOnWindowFocus: true,
@@ -79,11 +79,11 @@ export const useSession = (opcodeUrl: string | null | undefined, sessionID: stri
   });
 };
 
-export const useMessages = (opcodeUrl: string | null | undefined, sessionID: string | undefined, directory?: string) => {
-  const client = useOpenCodeClient(opcodeUrl, directory);
+export const useMessages = (costrictUrl: string | null | undefined, sessionID: string | undefined, directory?: string) => {
+  const client = useCoStrictClient(costrictUrl, directory);
 
   return useQuery({
-    queryKey: ["opencode", "messages", opcodeUrl, sessionID, directory],
+    queryKey: ["costrict", "messages", costrictUrl, sessionID, directory],
     queryFn: async () => {
       const response = await client!.listMessages(sessionID!)
       return response as MessageWithParts[]
@@ -98,8 +98,8 @@ export const useMessages = (opcodeUrl: string | null | undefined, sessionID: str
   });
 };
 
-export const useCreateSession = (opcodeUrl: string | null | undefined, directory?: string) => {
-  const client = useOpenCodeClient(opcodeUrl, directory);
+export const useCreateSession = (costrictUrl: string | null | undefined, directory?: string) => {
+  const client = useCoStrictClient(costrictUrl, directory);
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -112,19 +112,19 @@ export const useCreateSession = (opcodeUrl: string | null | undefined, directory
       return client.createSession(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["opencode", "sessions", opcodeUrl, directory] });
+      queryClient.invalidateQueries({ queryKey: ["costrict", "sessions", costrictUrl, directory] });
     },
   });
 };
 
-export const useDeleteSession = (opcodeUrl: string | null | undefined, directory?: string) => {
+export const useDeleteSession = (costrictUrl: string | null | undefined, directory?: string) => {
   const queryClient = useQueryClient();
-  const client = useOpenCodeClient(opcodeUrl, directory);
+  const client = useCoStrictClient(costrictUrl, directory);
 
   return useMutation({
     mutationFn: async (sessionIDs: string | string[]) => {
       if (!client) {
-        throw new Error('OpenCode client not available');
+        throw new Error('CoStrict client not available');
       }
       
       const ids = Array.isArray(sessionIDs) ? sessionIDs : [sessionIDs]
@@ -143,14 +143,14 @@ export const useDeleteSession = (opcodeUrl: string | null | undefined, directory
       return results
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["opencode", "sessions", opcodeUrl, directory] });
+      queryClient.invalidateQueries({ queryKey: ["costrict", "sessions", costrictUrl, directory] });
     },
   });
 };
 
-export const useUpdateSession = (opcodeUrl: string | null | undefined, directory?: string) => {
+export const useUpdateSession = (costrictUrl: string | null | undefined, directory?: string) => {
   const queryClient = useQueryClient();
-  const client = useOpenCodeClient(opcodeUrl, directory);
+  const client = useCoStrictClient(costrictUrl, directory);
 
   return useMutation({
     mutationFn: async ({ sessionID, title }: { sessionID: string; title: string }) => {
@@ -159,8 +159,8 @@ export const useUpdateSession = (opcodeUrl: string | null | undefined, directory
     },
     onSuccess: (_, variables) => {
       const { sessionID } = variables;
-      queryClient.invalidateQueries({ queryKey: ["opencode", "session", opcodeUrl, sessionID, directory] });
-      queryClient.invalidateQueries({ queryKey: ["opencode", "sessions", opcodeUrl, directory] });
+      queryClient.invalidateQueries({ queryKey: ["costrict", "session", costrictUrl, sessionID, directory] });
+      queryClient.invalidateQueries({ queryKey: ["costrict", "sessions", costrictUrl, directory] });
     },
   });
 };
@@ -215,8 +215,8 @@ const createOptimisticUserMessageInfo = (
   } as Message;
 };
 
-export const useSendPrompt = (opcodeUrl: string | null | undefined, directory?: string) => {
-  const client = useOpenCodeClient(opcodeUrl, directory);
+export const useSendPrompt = (costrictUrl: string | null | undefined, directory?: string) => {
+  const client = useCoStrictClient(costrictUrl, directory);
   const queryClient = useQueryClient();
   const hasInitializedRef = useRef<Set<string>>(new Set());
   const setSessionStatus = useSessionStatus((state) => state.setStatus);
@@ -241,10 +241,10 @@ export const useSendPrompt = (opcodeUrl: string | null | undefined, directory?: 
 
           hasInitializedRef.current.add(sessionID);
           queryClient.invalidateQueries({
-            queryKey: ["opencode", "session", opcodeUrl, sessionID, directory],
+            queryKey: ["costrict", "session", costrictUrl, sessionID, directory],
           });
           queryClient.invalidateQueries({
-            queryKey: ["opencode", "sessions", opcodeUrl, directory],
+            queryKey: ["costrict", "sessions", costrictUrl, directory],
           });
         } finally {
           titleGeneratingSessionsState.delete(sessionID);
@@ -294,7 +294,7 @@ export const useSendPrompt = (opcodeUrl: string | null | undefined, directory?: 
       );
       const userMessageInfo = createOptimisticUserMessageInfo(sessionID, optimisticUserID);
 
-      const messagesQueryKey = ["opencode", "messages", opcodeUrl, sessionID, directory];
+      const messagesQueryKey = ["costrict", "messages", costrictUrl, sessionID, directory];
       await queryClient.cancelQueries({ queryKey: messagesQueryKey });
 
       const optimisticMessageWithParts: MessageWithParts = {
@@ -352,7 +352,7 @@ export const useSendPrompt = (opcodeUrl: string | null | undefined, directory?: 
     },
     onError: (error, variables) => {
       const { sessionID } = variables;
-      const messagesQueryKey = ["opencode", "messages", opcodeUrl, sessionID, directory];
+      const messagesQueryKey = ["costrict", "messages", costrictUrl, sessionID, directory];
       
       const axiosError = error as { code?: string; response?: unknown };
       const isNetworkError = axiosError.code === 'ECONNABORTED' || 
@@ -385,7 +385,7 @@ export const useSendPrompt = (opcodeUrl: string | null | undefined, directory?: 
     onSuccess: async (data, variables) => {
       const { sessionID } = variables;
       const { optimisticUserID, userPromptText, response } = data;
-      const messagesQueryKey = ["opencode", "messages", opcodeUrl, sessionID, directory];
+      const messagesQueryKey = ["costrict", "messages", costrictUrl, sessionID, directory];
 
       queryClient.setQueryData<MessageWithParts[]>(
         messagesQueryKey,
@@ -407,7 +407,7 @@ export const useSendPrompt = (opcodeUrl: string | null | undefined, directory?: 
       setSessionStatus(sessionID, { type: "idle" });
 
       queryClient.invalidateQueries({
-        queryKey: ["opencode", "session", opcodeUrl, sessionID, directory],
+        queryKey: ["costrict", "session", costrictUrl, sessionID, directory],
       });
 
       await generateSessionTitle(sessionID, userPromptText);
@@ -419,17 +419,17 @@ const ABORT_RETRY_INTERVAL_MS = 3000;
 const MAX_ABORT_RETRIES = 10;
 
 export const useAbortSession = (
-  opcodeUrl: string | null | undefined,
+  costrictUrl: string | null | undefined,
   directory?: string,
   sessionID?: string
 ) => {
-  const client = useOpenCodeClient(opcodeUrl, directory);
+  const client = useCoStrictClient(costrictUrl, directory);
   const queryClient = useQueryClient();
   const retryIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryCountRef = useRef(0);
 
   const forceCompleteMessages = useCallback((targetSessionID: string) => {
-    const queryKey = ["opencode", "messages", opcodeUrl, targetSessionID, directory];
+    const queryKey = ["costrict", "messages", costrictUrl, targetSessionID, directory];
     const now = Date.now();
     
     queryClient.setQueryData<MessageWithParts[]>(queryKey, (old) => {
@@ -481,7 +481,7 @@ export const useAbortSession = (
         return msgWithParts;
       });
     });
-  }, [queryClient, opcodeUrl, directory]);
+  }, [queryClient, costrictUrl, directory]);
 
   const stopRetrying = useCallback(() => {
     if (retryIntervalRef.current) {
@@ -492,7 +492,7 @@ export const useAbortSession = (
   }, []);
 
   const isSessionComplete = useCallback((targetSessionID: string) => {
-    const queryKey = ["opencode", "messages", opcodeUrl, targetSessionID, directory];
+    const queryKey = ["costrict", "messages", costrictUrl, targetSessionID, directory];
     const messages = queryClient.getQueryData<MessageWithParts[]>(queryKey);
     
     const hasActiveStream = messages?.some(msgWithParts => {
@@ -502,13 +502,13 @@ export const useAbortSession = (
     });
 
     return !hasActiveStream;
-  }, [queryClient, opcodeUrl, directory]);
+  }, [queryClient, costrictUrl, directory]);
 
   useEffect(() => {
     if (!sessionID) return;
 
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
-      const queryKey = ["opencode", "messages", opcodeUrl, sessionID, directory];
+      const queryKey = ["costrict", "messages", costrictUrl, sessionID, directory];
       if (event.query.queryKey.join(",") === queryKey.join(",")) {
         if (isSessionComplete(sessionID) && retryIntervalRef.current) {
           stopRetrying();
@@ -517,7 +517,7 @@ export const useAbortSession = (
     });
 
     return () => unsubscribe();
-  }, [sessionID, queryClient, opcodeUrl, directory, isSessionComplete, stopRetrying]);
+  }, [sessionID, queryClient, costrictUrl, directory, isSessionComplete, stopRetrying]);
 
   useEffect(() => {
     return () => stopRetrying();
@@ -564,8 +564,8 @@ export const useAbortSession = (
   return mutation;
 };
 
-export const useSendShell = (opcodeUrl: string | null | undefined, directory?: string) => {
-  const client = useOpenCodeClient(opcodeUrl, directory);
+export const useSendShell = (costrictUrl: string | null | undefined, directory?: string) => {
+  const client = useCoStrictClient(costrictUrl, directory);
   const queryClient = useQueryClient();
   const setSessionStatus = useSessionStatus((state) => state.setStatus);
 
@@ -592,7 +592,7 @@ export const useSendShell = (opcodeUrl: string | null | undefined, directory?: s
       );
       const userMessageInfo = createOptimisticUserMessageInfo(sessionID, optimisticUserID);
 
-      const messagesQueryKey = ["opencode", "messages", opcodeUrl, sessionID, directory];
+      const messagesQueryKey = ["costrict", "messages", costrictUrl, sessionID, directory];
       await queryClient.cancelQueries({ queryKey: messagesQueryKey });
 
       const optimisticMessageWithParts: MessageWithParts = {
@@ -615,7 +615,7 @@ export const useSendShell = (opcodeUrl: string | null | undefined, directory?: s
       const { sessionID } = variables;
       setSessionStatus(sessionID, { type: "idle" });
       queryClient.setQueryData<MessageWithParts[]>(
-        ["opencode", "messages", opcodeUrl, sessionID, directory],
+        ["costrict", "messages", costrictUrl, sessionID, directory],
         (old) => {
           if (!old) return old;
           return old.filter((msgWithParts) => !msgWithParts.info.id.startsWith("optimistic_"));
@@ -627,7 +627,7 @@ export const useSendShell = (opcodeUrl: string | null | undefined, directory?: s
       const { optimisticUserID } = data;
 
       queryClient.setQueryData<MessageWithParts[]>(
-        ["opencode", "messages", opcodeUrl, sessionID, directory],
+        ["costrict", "messages", costrictUrl, sessionID, directory],
         (old) => {
           if (!old) return old;
           return old.filter((msgWithParts) => msgWithParts.info.id !== optimisticUserID);
@@ -635,17 +635,17 @@ export const useSendShell = (opcodeUrl: string | null | undefined, directory?: s
       );
 
       queryClient.invalidateQueries({
-        queryKey: ["opencode", "session", opcodeUrl, sessionID, directory],
+        queryKey: ["costrict", "session", costrictUrl, sessionID, directory],
       });
     },
   });
 };
 
-export const useConfig = (opcodeUrl: string | null | undefined, directory?: string) => {
-  const client = useOpenCodeClient(opcodeUrl, directory);
+export const useConfig = (costrictUrl: string | null | undefined, directory?: string) => {
+  const client = useCoStrictClient(costrictUrl, directory);
 
   return useQuery({
-    queryKey: ["opencode", "config", opcodeUrl, directory],
+    queryKey: ["costrict", "config", costrictUrl, directory],
     queryFn: () => client!.getConfig(),
     enabled: !!client,
     staleTime: 0,
@@ -653,11 +653,11 @@ export const useConfig = (opcodeUrl: string | null | undefined, directory?: stri
   });
 };
 
-export const useAgents = (opcodeUrl: string | null | undefined, directory?: string) => {
-  const client = useOpenCodeClient(opcodeUrl, directory);
+export const useAgents = (costrictUrl: string | null | undefined, directory?: string) => {
+  const client = useCoStrictClient(costrictUrl, directory);
 
   return useQuery({
-    queryKey: ["opencode", "agents", opcodeUrl, directory],
+    queryKey: ["costrict", "agents", costrictUrl, directory],
     queryFn: () => client!.listAgents(),
     enabled: !!client,
   });

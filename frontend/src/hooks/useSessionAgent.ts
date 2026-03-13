@@ -1,7 +1,7 @@
 import { useMemo, useRef, useEffect } from 'react'
-import { useMessages } from './useOpenCode'
+import { useMessages } from './useClient'
 import { useSessionAgentStore } from '@/stores/sessionAgentStore'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 
 type UserMessage = components['schemas']['UserMessage']
 

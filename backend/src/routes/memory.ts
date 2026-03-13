@@ -6,14 +6,14 @@ import { logger } from '../utils/logger'
 import { PluginMemoryService } from '../services/plugin-memory'
 import { resolveProjectId } from '../services/project-id-resolver'
 import { getRepoById } from '../db/queries'
-import { getWorkspacePath } from '@opencode-manager/shared/config/env'
+import { getWorkspacePath } from '@costrict-manager/shared/config/env'
 import {
   CreateMemoryRequestSchema,
   UpdateMemoryRequestSchema,
   MemoryListQuerySchema,
   PluginConfigSchema,
   type PluginConfig,
-} from '@opencode-manager/shared/schemas'
+} from '@costrict-manager/shared/schemas'
 
 function resolveMemoryDataDir(): string {
   return join(getWorkspacePath(), '.opencode', 'state', 'opencode', 'memory')

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Command } from 'lucide-react'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 
 type CommandType = components['schemas']['Command']
 

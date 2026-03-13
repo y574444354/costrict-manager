@@ -5,7 +5,7 @@ import { mkdir, readFile, writeFile, stat, unlink } from 'fs/promises'
 import { join } from 'path'
 import { SettingsService } from '../services/settings'
 import { logger } from '../utils/logger'
-import { getWorkspacePath } from '@opencode-manager/shared/config/env'
+import { getWorkspacePath } from '@costrict-manager/shared/config/env'
 
 type STTConfigExtended = {
   enabled: boolean

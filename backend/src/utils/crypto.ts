@@ -1,7 +1,7 @@
 import { scryptSync, createCipheriv, createDecipheriv, randomBytes } from 'crypto'
-import { ENV } from '@opencode-manager/shared/config/env'
+import { ENV } from '@costrict-manager/shared/config/env'
 
-const ENCRYPTION_KEY_SALT = Buffer.from('opencode-ssh-key-salt-v1', 'utf8')
+const ENCRYPTION_KEY_SALT = Buffer.from('costrict-ssh-key-salt-v1', 'utf8')
 const IV_LENGTH = 16
 const KEY_LENGTH = 32
 

@@ -1,6 +1,6 @@
 # Contributing
 
-Guide for contributing to OpenCode Manager.
+Guide for contributing to CoStrict Manager.
 
 ## Getting Started
 

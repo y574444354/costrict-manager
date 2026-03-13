@@ -11,6 +11,13 @@ interface AddRepoDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+function isAbsolutePath(localPath: string): boolean {
+  if (!localPath) return false
+  if (localPath.startsWith('/')) return true
+  if (/^[a-zA-Z]:[\\/]/.test(localPath)) return true
+  return false
+}
+
 export function AddRepoDialog({ open, onOpenChange }: AddRepoDialogProps) {
   const [repoType, setRepoType] = useState<'remote' | 'local'>('remote')
   const [repoUrl, setRepoUrl] = useState('')
@@ -138,15 +145,15 @@ export function AddRepoDialog({ open, onOpenChange }: AddRepoDialogProps) {
               className="bg-[#1a1a1a] border-[#2a2a2a] text-white placeholder:text-zinc-500"
             />
             <p className="text-xs text-zinc-500">
-              {branch 
-                ? repoType === 'remote' 
+              {branch
+                ? repoType === 'remote'
                   ? `Clones repository directly to '${branch}' branch`
-                  : localPath?.startsWith('/') 
+                  : isAbsolutePath(localPath)
                     ? `Copies repo and checks out '${branch}' branch (creates if needed)`
                     : `Initializes repository with '${branch}' branch`
                 : repoType === 'remote'
                   ? "Clones repository to default branch"
-                  : localPath?.startsWith('/')
+                  : isAbsolutePath(localPath)
                     ? "Copies repo and checks out current branch"
                     : "Initializes repository with 'main' branch"
               }

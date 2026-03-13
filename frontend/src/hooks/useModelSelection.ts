@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useConfig } from './useOpenCode'
-import { useOpenCodeClient } from './useOpenCode'
+import { useConfig } from './useClient'
+import { useCoStrictClient } from './useClient'
 import { useModelStore, type ModelSelection } from '@/stores/modelStore'
 import { getProviders } from '@/api/providers'
 
@@ -17,7 +17,7 @@ export function useModelSelection(
   directory?: string
 ): UseModelSelectionResult {
   const { data: config } = useConfig(opcodeUrl, directory)
-  const client = useOpenCodeClient(opcodeUrl, directory)
+  const client = useCoStrictClient(opcodeUrl, directory)
   
   const { data: providersData } = useQuery({
     queryKey: ['opencode', 'providers', opcodeUrl, directory],

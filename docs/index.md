@@ -1,23 +1,23 @@
-# OpenCode Manager
+# CoStrict Manager
 
-Mobile-first web interface for [OpenCode](https://opencode.ai) AI agents. Manage, control, and code from any device - your phone, tablet, or desktop.
+Mobile-first web interface for [CoStrict](https://costrict.ai) AI agents. Manage, control, and code from any device - your phone, tablet, or desktop.
 
 <!-- Replace with your hero GIF -->
-![OpenCode Manager Demo](images/ocmgr-demo.gif)
+![CoStrict Manager Demo](images/ocmgr-demo.gif)
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/chriswritescode-dev/opencode-manager.git
-cd opencode-manager
+git clone https://github.com/chriswritescode-dev/costrict-manager.git
+cd costrict-manager
 docker-compose up -d
 ```
 
 Open [http://localhost:5003](http://localhost:5003) and create your admin account. That's it!
 
-## What is OpenCode Manager?
+## What is CoStrict Manager?
 
-OpenCode Manager provides a web-based interface for OpenCode AI agents, allowing you to:
+CoStrict Manager provides a web-based interface for CoStrict AI agents, allowing you to:
 
 - **Manage repositories** - Clone, browse, and work with multiple git repos
 - **Chat with AI** - Real-time streaming chat with file mentions and slash commands
@@ -37,7 +37,7 @@ OpenCode Manager provides a web-based interface for OpenCode AI agents, allowing
 - **Memory Plugin (Optional)** - Persistent project knowledge with semantic search
 
 !!! tip "Memory Plugin — Persistent Project Knowledge"
-    Store and retrieve project knowledge across sessions using vector embeddings and semantic search. Works as a standalone plugin with any OpenCode installation.
+    Store and retrieve project knowledge across sessions using vector embeddings and semantic search. Works as a standalone plugin with any CoStrict installation.
 
     **[Learn more →](features/memory.md)**
 

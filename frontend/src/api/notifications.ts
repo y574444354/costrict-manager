@@ -1,4 +1,4 @@
-import type { PushSubscriptionRecord } from "@opencode-manager/shared/types";
+import type { PushSubscriptionRecord } from "@costrict-manager/shared/types";
 import { API_BASE_URL } from "@/config";
 import { fetchWrapper } from "./fetchWrapper";
 

@@ -5,20 +5,20 @@ import { useMobile } from '@/hooks/useMobile'
 import type { MessageWithParts } from '@/api/types'
 
 interface MessageActionButtonsProps {
-  opcodeUrl: string
+  coststrictUrl: string
   sessionId: string
   directory?: string
   message: MessageWithParts
 }
 
 export const MessageActionButtons = memo(function MessageActionButtons({
-  opcodeUrl,
+  coststrictUrl,
   sessionId,
   directory,
   message
 }: MessageActionButtonsProps) {
   const isMobile = useMobile()
-  const removeMessage = useRemoveMessage({ opcodeUrl, sessionId, directory })
+  const removeMessage = useRemoveMessage({ coststrictUrl, sessionId, directory })
 
   const handleRemove = () => {
     if (removeMessage.isPending) return

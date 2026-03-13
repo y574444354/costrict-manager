@@ -1,5 +1,5 @@
 {
-  "name": "@opencode-manager/memory",
+  "name": "@costrict-manager/memory",
   "version": "0.0.18",
   "type": "module",
   "main": "./dist/index.js",
@@ -21,12 +21,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/chriswritescode-dev/opencode-manager.git"
+    "url": "https://github.com/chriswritescode-dev/costrict-manager.git"
   },
   "author": "Chris Scott",
-  "description": "AI-powered memory management plugin for OpenCode - semantic search and persistent knowledge storage",
+  "description": "AI-powered memory management plugin for CoStrict - semantic search and persistent knowledge storage",
   "keywords": [
-    "opencode",
+    "costrict",
     "memory",
     "semantic-search",
     "vector-embeddings",
@@ -34,7 +34,7 @@
     "plugin"
   ],
   "license": "MIT",
-  "homepage": "https://chriswritescode-dev.github.io/opencode-manager/features/memory/",
+  "homepage": "https://chriswritescode-dev.github.io/costrict-manager/features/memory/",
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
     "@opencode-ai/plugin": "^1.2.16",

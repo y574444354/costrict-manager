@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { LspStatusButton } from './LspStatusButton'
-import type { LspStatus } from '@/api/opencode'
+import type { LspStatus } from '@/api/client'
 import { useLSPStatus } from '@/hooks/useLSPStatus'
 
 vi.mock('@/hooks/useLSPStatus')

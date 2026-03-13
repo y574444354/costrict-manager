@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { RepoLspServerList } from './RepoLspServerList'
-import type { LspStatus } from '@/api/opencode'
+import type { LspStatus } from '@/api/client'
 
 describe('RepoLspServerList', () => {
   describe('loading state', () => {

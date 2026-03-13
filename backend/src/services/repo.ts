@@ -5,14 +5,14 @@ import * as db from '../db/queries'
 import type { Database } from 'bun:sqlite'
 import type { Repo, CreateRepoInput } from '../types/repo'
 import { logger } from '../utils/logger'
-import { getReposPath } from '@opencode-manager/shared/config/env'
+import { getReposPath } from '@costrict-manager/shared/config/env'
 import type { GitAuthService } from './git-auth'
 import { isGitHubHttpsUrl, isSSHUrl, normalizeSSHUrl } from '../utils/git-auth'
 import path from 'path'
 import { parseSSHHost } from '../utils/ssh-key-manager'
 import { getErrorMessage } from '../utils/error-utils'
 
-const GIT_CLONE_TIMEOUT = 300000
+const GIT_CLONE_TIMEOUT = 600000
 
 function enhanceCloneError(error: unknown, repoUrl: string, originalMessage: string): Error {
   const message = originalMessage.toLowerCase()
@@ -61,12 +61,7 @@ async function isValidGitRepo(repoPath: string, env: Record<string, string>): Pr
 async function checkRepoNameAvailable(name: string): Promise<boolean> {
   const reposPath = getReposPath()
   const targetPath = path.join(reposPath, name)
-  try {
-    await executeCommand(['test', '-e', targetPath], { silent: true })
-    return false
-  } catch {
-    return true
-  }
+  return !existsSync(targetPath)
 }
 
 async function copyRepoToWorkspace(sourcePath: string, targetName: string, env: Record<string, string>): Promise<void> {
@@ -148,9 +143,7 @@ export async function initLocalRepo(
     logger.info(`Absolute path detected: ${normalizedInputPath}`)
     
     try {
-      const exists = await executeCommand(['test', '-d', normalizedInputPath], { silent: true })
-        .then(() => true)
-        .catch(() => false)
+      const exists = existsSync(normalizedInputPath)
       
       if (!exists) {
         throw new Error(`No such file or directory: '${normalizedInputPath}'`)
@@ -256,16 +249,17 @@ export async function initLocalRepo(
       logger.error(`Failed to rollback database record for repo id ${repo.id}:`, getErrorMessage(dbError))
     }
     
+    const targetPath = path.join(getReposPath(), repoLocalPath)
     if (directoryCreated && !sourceWasGitRepo) {
       try {
-        await executeCommand(['rm', '-rf', repoLocalPath], getReposPath())
+        rmSync(targetPath, { recursive: true, force: true })
         logger.info(`Rolled back directory: ${repoLocalPath}`)
       } catch (fsError: unknown) {
         logger.error(`Failed to rollback directory ${repoLocalPath}:`, getErrorMessage(fsError))
       }
     } else if (sourceWasGitRepo) {
       try {
-        await executeCommand(['rm', '-rf', repoLocalPath], getReposPath())
+        rmSync(targetPath, { recursive: true, force: true })
         logger.info(`Cleaned up copied directory: ${repoLocalPath}`)
       } catch (fsError: unknown) {
         logger.error(`Failed to clean up copied directory ${repoLocalPath}:`, getErrorMessage(fsError))
@@ -635,7 +629,7 @@ export async function deleteRepoFiles(database: Database, repoId: number): Promi
     }
   }
 
-  await executeCommand(['rm', '-rf', dirName], getReposPath())
+  rmSync(fullPath, { recursive: true, force: true })
   db.deleteRepo(database, repoId)
 }
 

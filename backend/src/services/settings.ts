@@ -1,28 +1,28 @@
 import { Database } from 'bun:sqlite'
 import { unlinkSync, existsSync } from 'fs'
-import { getOpenCodeConfigFilePath } from '@opencode-manager/shared/config/env'
+import { getCoStrictConfigFilePath } from '@costrict-manager/shared/config/env'
 import { logger } from '../utils/logger'
-import { parseJsonc } from '@opencode-manager/shared/utils'
-import type { 
-  UserPreferences, 
-  SettingsResponse, 
-  OpenCodeConfig,
-  CreateOpenCodeConfigRequest,
-  UpdateOpenCodeConfigRequest
+import { parseJsonc } from '@costrict-manager/shared/utils'
+import type {
+  UserPreferences,
+  SettingsResponse,
+  CoStrictConfig,
+  CreateCoStrictConfigRequest,
+  UpdateCoStrictConfigRequest
 } from '../types/settings'
 import {
   UserPreferencesSchema,
-  OpenCodeConfigSchema,
+  CoStrictConfigSchema,
   DEFAULT_USER_PREFERENCES,
 } from '../types/settings'
 
-interface OpenCodeConfigWithRaw extends OpenCodeConfig {
+interface CoStrictConfigWithRaw extends CoStrictConfig {
   rawContent: string
 }
 
-interface OpenCodeConfigResponseWithRaw {
-  configs: OpenCodeConfigWithRaw[]
-  defaultConfig: OpenCodeConfigWithRaw | null
+interface CoStrictConfigResponseWithRaw {
+  configs: CoStrictConfigWithRaw[]
+  defaultConfig: CoStrictConfigWithRaw | null
 }
 
 
@@ -121,9 +121,9 @@ export class SettingsService {
     }
   }
 
-  getOpenCodeConfigs(userId: string = 'default'): OpenCodeConfigResponseWithRaw {
+  getCostrictConfigs(userId: string = 'default'): CoStrictConfigResponseWithRaw {
     const rows = this.db
-      .query('SELECT * FROM opencode_configs WHERE user_id = ? ORDER BY created_at DESC')
+      .query('SELECT * FROM costrict_configs WHERE user_id = ? ORDER BY created_at DESC')
       .all(userId) as Array<{
         id: number
         user_id: string
@@ -134,16 +134,16 @@ export class SettingsService {
         updated_at: number
       }>
 
-    const configs: OpenCodeConfigWithRaw[] = []
-    let defaultConfig: OpenCodeConfigWithRaw | null = null
+    const configs: CoStrictConfigWithRaw[] = []
+    let defaultConfig: CoStrictConfigWithRaw | null = null
 
     for (const row of rows) {
       try {
         const rawContent = row.config_content
         const content = parseJsonc(rawContent)
-        const validated = OpenCodeConfigSchema.parse(content)
-        
-        const config: OpenCodeConfigWithRaw = {
+        const validated = CoStrictConfigSchema.parse(content)
+
+        const config: CoStrictConfigWithRaw = {
           id: row.id,
           name: row.config_name,
           content: validated,
@@ -154,7 +154,7 @@ export class SettingsService {
         }
 
         configs.push(config)
-        
+
         if (config.isDefault) {
           defaultConfig = config
         }
@@ -169,42 +169,42 @@ export class SettingsService {
     }
   }
 
-  createOpenCodeConfig(
-    request: CreateOpenCodeConfigRequest,
+  createCoStrictConfig(
+    request: CreateCoStrictConfigRequest,
     userId: string = 'default'
-  ): OpenCodeConfigWithRaw {
+  ): CoStrictConfigWithRaw {
     // Check for existing config with the same name
-    const existing = this.getOpenCodeConfigByName(request.name, userId)
+    const existing = this.getCoStrictConfigByName(request.name, userId)
     if (existing) {
       throw new Error(`Config with name '${request.name}' already exists`)
     }
 
-    const rawContent = typeof request.content === 'string' 
-      ? request.content 
+    const rawContent = typeof request.content === 'string'
+      ? request.content
       : JSON.stringify(request.content, null, 2)
-    
+
     const parsedContent = typeof request.content === 'string'
       ? parseJsonc(request.content)
       : request.content
-    
-    const contentValidated = OpenCodeConfigSchema.parse(parsedContent)
+
+    const contentValidated = CoStrictConfigSchema.parse(parsedContent)
     const now = Date.now()
 
     const existingCount = this.db
-      .query('SELECT COUNT(*) as count FROM opencode_configs WHERE user_id = ?')
+      .query('SELECT COUNT(*) as count FROM costrict_configs WHERE user_id = ?')
       .get(userId) as { count: number }
-    
+
     const shouldBeDefault = request.isDefault || existingCount.count === 0
 
     if (shouldBeDefault) {
       this.db
-        .query('UPDATE opencode_configs SET is_default = FALSE WHERE user_id = ?')
+        .query('UPDATE costrict_configs SET is_default = FALSE WHERE user_id = ?')
         .run(userId)
     }
 
     const result = this.db
       .query(
-        `INSERT INTO opencode_configs (user_id, config_name, config_content, is_default, created_at, updated_at)
+        `INSERT INTO costrict_configs (user_id, config_name, config_content, is_default, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?)`
       )
       .run(
@@ -216,7 +216,7 @@ export class SettingsService {
         now
       )
 
-    const config: OpenCodeConfigWithRaw = {
+    const config: CoStrictConfigWithRaw = {
       id: result.lastInsertRowid as number,
       name: request.name,
       content: contentValidated,
@@ -226,17 +226,17 @@ export class SettingsService {
       updatedAt: now,
     }
 
-    logger.info(`Created OpenCode config '${config.name}' for user: ${userId}`)
+    logger.info(`Created CoStrict config '${config.name}' for user: ${userId}`)
     return config
   }
 
-  updateOpenCodeConfig(
+  updateCoStrictConfig(
     configName: string,
-    request: UpdateOpenCodeConfigRequest,
+    request: UpdateCoStrictConfigRequest,
     userId: string = 'default'
-  ): OpenCodeConfigWithRaw | null {
+  ): CoStrictConfigWithRaw | null {
     const existing = this.db
-      .query('SELECT * FROM opencode_configs WHERE user_id = ? AND config_name = ?')
+      .query('SELECT * FROM costrict_configs WHERE user_id = ? AND config_name = ?')
       .get(userId, configName) as {
         id: number
         config_content: string
@@ -248,26 +248,26 @@ export class SettingsService {
       return null
     }
 
-    const rawContent = typeof request.content === 'string' 
-      ? request.content 
+    const rawContent = typeof request.content === 'string'
+      ? request.content
       : JSON.stringify(request.content, null, 2)
-    
+
     const parsedContent = typeof request.content === 'string'
       ? parseJsonc(request.content)
       : request.content
 
-    const contentValidated = OpenCodeConfigSchema.parse(parsedContent)
+    const contentValidated = CoStrictConfigSchema.parse(parsedContent)
     const now = Date.now()
 
     if (request.isDefault) {
       this.db
-        .query('UPDATE opencode_configs SET is_default = FALSE WHERE user_id = ?')
+        .query('UPDATE costrict_configs SET is_default = FALSE WHERE user_id = ?')
         .run(userId)
     }
 
     this.db
       .query(
-        `UPDATE opencode_configs 
+        `UPDATE costrict_configs
          SET config_content = ?, is_default = ?, updated_at = ?
          WHERE user_id = ? AND config_name = ?`
       )
@@ -279,7 +279,7 @@ export class SettingsService {
         configName
       )
 
-    const config: OpenCodeConfigWithRaw = {
+    const config: CoStrictConfigWithRaw = {
       id: existing.id,
       name: configName,
       content: contentValidated,
@@ -289,27 +289,27 @@ export class SettingsService {
       updatedAt: now,
     }
 
-    logger.info(`Updated OpenCode config '${configName}' for user: ${userId}`)
+    logger.info(`Updated CoStrict config '${configName}' for user: ${userId}`)
     return config
   }
 
-  deleteOpenCodeConfig(configName: string, userId: string = 'default'): boolean {
+  deleteCoStrictConfig(configName: string, userId: string = 'default'): boolean {
     const result = this.db
-      .query('DELETE FROM opencode_configs WHERE user_id = ? AND config_name = ?')
+      .query('DELETE FROM costrict_configs WHERE user_id = ? AND config_name = ?')
       .run(userId, configName)
 
     const deleted = result.changes > 0
     if (deleted) {
-      logger.info(`Deleted OpenCode config '${configName}' for user: ${userId}`)
+      logger.info(`Deleted CoStrict config '${configName}' for user: ${userId}`)
       this.ensureSingleConfigIsDefault(userId)
     }
 
     return deleted
   }
 
-  setDefaultOpenCodeConfig(configName: string, userId: string = 'default'): OpenCodeConfigWithRaw | null {
+  setDefaultCoStrictConfig(configName: string, userId: string = 'default'): CoStrictConfigWithRaw | null {
     const existing = this.db
-      .query('SELECT * FROM opencode_configs WHERE user_id = ? AND config_name = ?')
+      .query('SELECT * FROM costrict_configs WHERE user_id = ? AND config_name = ?')
       .get(userId, configName) as {
         id: number
         config_content: string
@@ -321,13 +321,13 @@ export class SettingsService {
     }
 
     this.db
-      .query('UPDATE opencode_configs SET is_default = FALSE WHERE user_id = ?')
+      .query('UPDATE costrict_configs SET is_default = FALSE WHERE user_id = ?')
       .run(userId)
 
     const now = Date.now()
     this.db
       .query(
-        `UPDATE opencode_configs 
+        `UPDATE costrict_configs
          SET is_default = TRUE, updated_at = ?
          WHERE user_id = ? AND config_name = ?`
       )
@@ -336,9 +336,9 @@ export class SettingsService {
     try {
       const rawContent = existing.config_content
       const content = parseJsonc(rawContent)
-      const validated = OpenCodeConfigSchema.parse(content)
+      const validated = CoStrictConfigSchema.parse(content)
 
-      const config: OpenCodeConfigWithRaw = {
+      const config: CoStrictConfigWithRaw = {
         id: existing.id,
         name: configName,
         content: validated,
@@ -348,7 +348,7 @@ export class SettingsService {
         updatedAt: now,
       }
 
-      logger.info(`Set '${configName}' as default OpenCode config for user: ${userId}`)
+      logger.info(`Set '${configName}' as default CoStrict config for user: ${userId}`)
       return config
     } catch (error) {
       logger.error(`Failed to parse config ${configName}:`, error)
@@ -356,9 +356,9 @@ export class SettingsService {
     }
   }
 
-  getDefaultOpenCodeConfig(userId: string = 'default'): OpenCodeConfigWithRaw | null {
+  getDefaultCoStrictConfig(userId: string = 'default'): CoStrictConfigWithRaw | null {
     const row = this.db
-      .query('SELECT * FROM opencode_configs WHERE user_id = ? AND is_default = TRUE')
+      .query('SELECT * FROM costrict_configs WHERE user_id = ? AND is_default = TRUE')
       .get(userId) as {
         id: number
         config_name: string
@@ -374,7 +374,7 @@ export class SettingsService {
     try {
       const rawContent = row.config_content
       const content = parseJsonc(rawContent)
-      const validated = OpenCodeConfigSchema.parse(content)
+      const validated = CoStrictConfigSchema.parse(content)
 
       return {
         id: row.id,
@@ -391,9 +391,9 @@ export class SettingsService {
     }
   }
 
-  getOpenCodeConfigByName(configName: string, userId: string = 'default'): OpenCodeConfigWithRaw | null {
+  getCoStrictConfigByName(configName: string, userId: string = 'default'): CoStrictConfigWithRaw | null {
     const row = this.db
-      .query('SELECT * FROM opencode_configs WHERE user_id = ? AND config_name = ?')
+      .query('SELECT * FROM costrict_configs WHERE user_id = ? AND config_name = ?')
       .get(userId, configName) as {
         id: number
         config_name: string
@@ -410,7 +410,7 @@ export class SettingsService {
     try {
       const rawContent = row.config_content
       const content = parseJsonc(rawContent)
-      const validated = OpenCodeConfigSchema.parse(content)
+      const validated = CoStrictConfigSchema.parse(content)
 
       return {
         id: row.id,
@@ -427,11 +427,11 @@ export class SettingsService {
     }
   }
 
-  getOpenCodeConfigContent(configName: string, userId: string = 'default'): string | null {
+  getCoStrictConfigContent(configName: string, userId: string = 'default'): string | null {
     const row = this.db
-      .query('SELECT config_content FROM opencode_configs WHERE user_id = ? AND config_name = ?')
+      .query('SELECT config_content FROM costrict_configs WHERE user_id = ? AND config_name = ?')
       .get(userId, configName) as { config_content: string } | undefined
-    
+
     if (!row) {
       logger.error(`Config '${configName}' not found for user ${userId}`)
       return null
@@ -442,17 +442,17 @@ export class SettingsService {
 
   ensureSingleConfigIsDefault(userId: string = 'default'): void {
     const hasDefault = this.db
-      .query('SELECT COUNT(*) as count FROM opencode_configs WHERE user_id = ? AND is_default = TRUE')
+      .query('SELECT COUNT(*) as count FROM costrict_configs WHERE user_id = ? AND is_default = TRUE')
       .get(userId) as { count: number }
 
     if (hasDefault.count === 0) {
       const firstConfig = this.db
-        .query('SELECT config_name FROM opencode_configs WHERE user_id = ? ORDER BY created_at ASC LIMIT 1')
+        .query('SELECT config_name FROM costrict_configs WHERE user_id = ? ORDER BY created_at ASC LIMIT 1')
         .get(userId) as { config_name: string } | undefined
 
       if (firstConfig) {
         this.db
-          .query('UPDATE opencode_configs SET is_default = TRUE WHERE user_id = ? AND config_name = ?')
+          .query('UPDATE costrict_configs SET is_default = TRUE WHERE user_id = ? AND config_name = ?')
           .run(userId, firstConfig.config_name)
         logger.info(`Auto-set '${firstConfig.config_name}' as default (only config)`)
       }
@@ -460,7 +460,7 @@ export class SettingsService {
   }
 
   saveLastKnownGoodConfig(userId: string = 'default'): void {
-    const config = this.getDefaultOpenCodeConfig(userId)
+    const config = this.getDefaultCoStrictConfig(userId)
     if (config) {
       SettingsService.lastKnownGoodConfigContent = config.rawContent
       this.persistLastKnownGoodConfig(userId)
@@ -474,7 +474,7 @@ export class SettingsService {
       return null
     }
 
-    const configs = this.getOpenCodeConfigs(userId)
+    const configs = this.getCostrictConfigs(userId)
     const defaultConfig = configs.defaultConfig
 
     if (!defaultConfig) {
@@ -495,12 +495,12 @@ export class SettingsService {
       return null
     }
 
-    this.updateOpenCodeConfig(lastGood.configName, { content: lastGood.content }, userId)
+    this.updateCoStrictConfig(lastGood.configName, { content: lastGood.content }, userId)
     return lastGood.configName
   }
 
   deleteFilesystemConfig(): boolean {
-    const configPath = getOpenCodeConfigFilePath()
+    const configPath = getCoStrictConfigFilePath()
 
     if (!existsSync(configPath)) {
       logger.warn('Config file does not exist:', configPath)

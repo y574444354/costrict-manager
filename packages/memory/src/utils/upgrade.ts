@@ -17,7 +17,7 @@ export async function fetchLatestVersion(): Promise<string | null> {
     return cachedVersion.value
   }
   try {
-    const response = await fetch('https://registry.npmjs.org/@opencode-manager/memory/latest')
+    const response = await fetch('https://registry.npmjs.org/@costrict-manager/memory/latest')
     if (!response.ok) {
       return null
     }
@@ -76,7 +76,7 @@ export function updateCachePackageJson(cacheDir: string, version: string): void 
     const content = readFileSync(packageJsonPath, 'utf-8')
     const packageJson = JSON.parse(content) as { dependencies?: Record<string, string> }
     if (packageJson.dependencies) {
-      packageJson.dependencies['@opencode-manager/memory'] = version
+      packageJson.dependencies['@costrict-manager/memory'] = version
       writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf-8')
     }
   } catch {

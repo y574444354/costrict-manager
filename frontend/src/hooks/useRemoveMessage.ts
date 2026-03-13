@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createOpenCodeClient } from '@/api/opencode'
+import { createCoStrictClient } from '@/api/client'
 import { showToast } from '@/lib/toast'
 import type { Message, Part, MessageWithParts } from '@/api/types'
 import { useSessionStatus } from '@/stores/sessionStatusStore'
 
 interface UseRemoveMessageOptions {
-  opcodeUrl: string | null
+  coststrictUrl: string | null
   sessionId: string
   directory?: string
 }
@@ -14,18 +14,18 @@ interface RemoveMessageContext {
   previousMessages?: MessageWithParts[]
 }
 
-export function useRemoveMessage({ opcodeUrl, sessionId, directory }: UseRemoveMessageOptions) {
+export function useRemoveMessage({ coststrictUrl, sessionId, directory }: UseRemoveMessageOptions) {
   const queryClient = useQueryClient()
 
   return useMutation<unknown, Error, { messageID: string; partID?: string }, RemoveMessageContext>({
     mutationFn: async ({ messageID, partID }: { messageID: string, partID?: string }) => {
-      if (!opcodeUrl) throw new Error('OpenCode URL not available')
+      if (!coststrictUrl) throw new Error('OpenCode URL not available')
       
-      const client = createOpenCodeClient(opcodeUrl, directory)
+      const client = createCoStrictClient(coststrictUrl, directory)
       return client.revertMessage(sessionId, { messageID, partID })
     },
     onMutate: async ({ messageID }) => {
-      const queryKey = ['opencode', 'messages', opcodeUrl, sessionId, directory]
+      const queryKey = ['opencode', 'messages', coststrictUrl, sessionId, directory]
       
       await queryClient.cancelQueries({ queryKey })
       
@@ -44,7 +44,7 @@ export function useRemoveMessage({ opcodeUrl, sessionId, directory }: UseRemoveM
     onError: (_error, _variables, _context: RemoveMessageContext | undefined) => {
       if (_context?.previousMessages) {
         queryClient.setQueryData(
-          ['opencode', 'messages', opcodeUrl, sessionId, directory],
+          ['opencode', 'messages', coststrictUrl, sessionId, directory],
           _context.previousMessages
         )
       }
@@ -53,24 +53,24 @@ export function useRemoveMessage({ opcodeUrl, sessionId, directory }: UseRemoveM
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['opencode', 'messages', opcodeUrl, sessionId, directory]
+        queryKey: ['opencode', 'messages', coststrictUrl, sessionId, directory]
       })
       queryClient.invalidateQueries({
-        queryKey: ['opencode', 'session', opcodeUrl, sessionId, directory]
+        queryKey: ['opencode', 'session', coststrictUrl, sessionId, directory]
       })
     }
   })
 }
 
 interface UseRefreshMessageOptions {
-  opcodeUrl: string | null
+  coststrictUrl: string | null
   sessionId: string
   directory?: string
 }
 
-export function useRefreshMessage({ opcodeUrl, sessionId, directory }: UseRefreshMessageOptions) {
+export function useRefreshMessage({ coststrictUrl, sessionId, directory }: UseRefreshMessageOptions) {
   const queryClient = useQueryClient()
-  const removeMessage = useRemoveMessage({ opcodeUrl, sessionId, directory })
+  const removeMessage = useRemoveMessage({ coststrictUrl, sessionId, directory })
   const setSessionStatus = useSessionStatus((state) => state.setStatus)
 
   return useMutation({
@@ -85,13 +85,13 @@ export function useRefreshMessage({ opcodeUrl, sessionId, directory }: UseRefres
       model?: string
       agent?: string
     }) => {
-      if (!opcodeUrl) throw new Error('OpenCode URL not available')
+      if (!coststrictUrl) throw new Error('OpenCode URL not available')
       
       setSessionStatus(sessionId, { type: 'busy' })
       
       await removeMessage.mutateAsync({ messageID: assistantMessageID })
       
-      const client = createOpenCodeClient(opcodeUrl, directory)
+      const client = createCoStrictClient(coststrictUrl, directory)
       
       const optimisticUserID = `optimistic_user_${Date.now()}_${Math.random()}`
       const userMessageInfo = {
@@ -115,7 +115,7 @@ export function useRefreshMessage({ opcodeUrl, sessionId, directory }: UseRefres
       }
 
       queryClient.setQueryData<MessageWithParts[]>(
-        ['opencode', 'messages', opcodeUrl, sessionId, directory],
+        ['opencode', 'messages', coststrictUrl, sessionId, directory],
         (old) => [...(old || []), optimisticMessageWithParts]
       )
       
@@ -146,17 +146,17 @@ export function useRefreshMessage({ opcodeUrl, sessionId, directory }: UseRefres
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['opencode', 'messages', opcodeUrl, sessionId, directory]
+        queryKey: ['opencode', 'messages', coststrictUrl, sessionId, directory]
       })
       queryClient.invalidateQueries({
-        queryKey: ['opencode', 'session', opcodeUrl, sessionId, directory]
+        queryKey: ['opencode', 'session', coststrictUrl, sessionId, directory]
       })
     },
     onError: (_, variables) => {
       void variables
       setSessionStatus(sessionId, { type: 'idle' })
       queryClient.setQueryData<MessageWithParts[]>(
-        ['opencode', 'messages', opcodeUrl, sessionId, directory],
+        ['opencode', 'messages', coststrictUrl, sessionId, directory],
         (old) => {
           const messages = old || []
           const optimisticIndex = messages.findIndex((m) => m.info.id.startsWith('optimistic_user_'))

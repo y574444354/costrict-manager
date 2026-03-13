@@ -1,4 +1,4 @@
-import type { paths } from './opencode-types'
+import type { paths } from './openapi-types'
 import { fetchWrapper } from './fetchWrapper'
 
 type SessionListResponse = paths['/session']['get']['responses']['200']['content']['application/json']
@@ -18,7 +18,7 @@ type LspStatus = LspStatusResponse[number]
 
 export type { SendPromptResponse, LspStatus }
 
-export class OpenCodeClient {
+export class CoStrictClient {
   private baseURL: string
   private directory?: string
 
@@ -245,6 +245,6 @@ export class OpenCodeClient {
   }
 }
 
-export const createOpenCodeClient = (baseURL: string, directory?: string) => {
-  return new OpenCodeClient(baseURL, directory)
+export const createCoStrictClient = (baseURL: string, directory?: string) => {
+  return new CoStrictClient(baseURL, directory)
 }

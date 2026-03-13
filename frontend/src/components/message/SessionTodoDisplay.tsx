@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import { TodoItem } from './TodoItem'
 import { useSessionTodosForSession } from '@/stores/sessionTodosStore'
 import { useSessionStatusForSession } from '@/stores/sessionStatusStore'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 
 export type Todo = components['schemas']['Todo']
 

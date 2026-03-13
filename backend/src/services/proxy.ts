@@ -1,9 +1,9 @@
 import { logger } from '../utils/logger'
-import { ENV } from '@opencode-manager/shared/config/env'
+import { ENV } from '@costrict-manager/shared/config/env'
 
-const OPENCODE_SERVER_URL = `http://${ENV.OPENCODE.HOST}:${ENV.OPENCODE.PORT}`
+const OPENCODE_SERVER_URL = `http://${ENV.COSTRICT.HOST}:${ENV.COSTRICT.PORT}`
 
-export async function setOpenCodeAuth(providerId: string, apiKey: string): Promise<boolean> {
+export async function setCoStrictAuth(providerId: string, apiKey: string): Promise<boolean> {
   try {
     const response = await fetch(`${OPENCODE_SERVER_URL}/auth/${providerId}`, {
       method: 'PUT',
@@ -12,33 +12,33 @@ export async function setOpenCodeAuth(providerId: string, apiKey: string): Promi
     })
     
     if (response.ok) {
-      logger.info(`Set OpenCode auth for provider: ${providerId}`)
+      logger.info(`Set CoStrict auth for provider: ${providerId}`)
       return true
     }
     
-    logger.error(`Failed to set OpenCode auth: ${response.status} ${response.statusText}`)
+    logger.error(`Failed to set CoStrict auth: ${response.status} ${response.statusText}`)
     return false
   } catch (error) {
-    logger.error('Failed to set OpenCode auth:', error)
+    logger.error('Failed to set CoStrict auth:', error)
     return false
   }
 }
 
-export async function deleteOpenCodeAuth(providerId: string): Promise<boolean> {
+export async function deleteCoStrictAuth(providerId: string): Promise<boolean> {
   try {
     const response = await fetch(`${OPENCODE_SERVER_URL}/auth/${providerId}`, {
       method: 'DELETE',
     })
     
     if (response.ok) {
-      logger.info(`Deleted OpenCode auth for provider: ${providerId}`)
+      logger.info(`Deleted CoStrict auth for provider: ${providerId}`)
       return true
     }
     
-    logger.error(`Failed to delete OpenCode auth: ${response.status} ${response.statusText}`)
+    logger.error(`Failed to delete CoStrict auth: ${response.status} ${response.statusText}`)
     return false
   } catch (error) {
-    logger.error('Failed to delete OpenCode auth:', error)
+    logger.error('Failed to delete CoStrict auth:', error)
     return false
   }
 }
@@ -48,7 +48,7 @@ export type PatchConfigResult = {
   error?: string
 }
 
-export async function patchOpenCodeConfig(config: Record<string, unknown>): Promise<PatchConfigResult> {
+export async function patchCoStrictConfig(config: Record<string, unknown>): Promise<PatchConfigResult> {
   try {
     const response = await fetch(`${OPENCODE_SERVER_URL}/config`, {
       method: 'PATCH',
@@ -57,7 +57,7 @@ export async function patchOpenCodeConfig(config: Record<string, unknown>): Prom
     })
     
     if (response.ok) {
-      logger.info('Patched OpenCode config via API')
+      logger.info('Patched CoStrict config via API')
       return { success: true }
     }
     
@@ -83,11 +83,11 @@ export async function patchOpenCodeConfig(config: Record<string, unknown>): Prom
       // Use default error message if we can't parse response body
     }
     
-    logger.error(`Failed to patch OpenCode config: ${errorMessage}`)
+    logger.error(`Failed to patch CoStrict config: ${errorMessage}`)
     return { success: false, error: errorMessage }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    logger.error('Failed to patch OpenCode config:', error)
+    logger.error('Failed to patch CoStrict config:', error)
     return { success: false, error: errorMessage }
   }
 }
@@ -95,8 +95,8 @@ export async function patchOpenCodeConfig(config: Record<string, unknown>): Prom
 export async function proxyRequest(request: Request) {
   const url = new URL(request.url)
   
-  // Remove /api/opencode prefix from pathname before forwarding
-  const cleanPathname = url.pathname.replace(/^\/api\/opencode/, '')
+  // Remove /api/costrict prefix from pathname before forwarding
+  const cleanPathname = url.pathname.replace(/^\/api\/costrict/, '')
   const targetUrl = `${OPENCODE_SERVER_URL}${cleanPathname}${url.search}`
   
   if (url.pathname.includes('/permissions/')) {
@@ -138,7 +138,7 @@ export async function proxyRequest(request: Request) {
   }
 }
 
-export async function proxyToOpenCodeWithDirectory(
+export async function proxyToCoStrictWithDirectory(
   path: string,
   method: string,
   directory: string | undefined,
@@ -171,7 +171,7 @@ export async function proxyToOpenCodeWithDirectory(
       headers: responseHeaders,
     })
   } catch (error) {
-    logger.error(`Proxy to OpenCode failed for ${path}:`, error)
+    logger.error(`Proxy to CoStrict failed for ${path}:`, error)
     return new Response(JSON.stringify({ error: 'Proxy request failed' }), {
       status: 502,
       headers: { 'Content-Type': 'application/json' },
@@ -216,17 +216,17 @@ export async function proxyMcpAuthAuthenticate(
 ): Promise<Response> {
   const path = `/mcp/${encodeURIComponent(serverName)}/auth/authenticate`
   const url = new URL(`${OPENCODE_SERVER_URL}${path}`)
-  
+
   if (directory) {
     url.searchParams.set('directory', directory)
   }
-  
+
   try {
     const response = await fetch(url.toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
-    
+
     const responseBody = await response.text()
     return new Response(responseBody, {
       status: response.status,
@@ -240,4 +240,8 @@ export async function proxyMcpAuthAuthenticate(
     })
   }
 }
+
+// Legacy function names for backward compatibility
+export const setOpenCodeAuth = setCoStrictAuth
+export const deleteOpenCodeAuth = deleteCoStrictAuth
 

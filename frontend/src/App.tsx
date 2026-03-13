@@ -10,6 +10,7 @@ import { Memories } from './pages/Memories'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { Setup } from './pages/Setup'
+import { OAuthCallback } from './pages/OAuthCallback'
 import { SettingsDialog } from './components/settings/SettingsDialog'
 import { VersionNotifier } from './components/VersionNotifier'
 import { useTheme } from './hooks/useTheme'
@@ -137,6 +138,10 @@ const router = createBrowserRouter([
         loader: protectedLoader,
       },
     ],
+  },
+  {
+    path: '/oauth/callback',
+    element: <OAuthCallback />,
   },
 ])
 

@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 import { Volume2, Loader2 } from 'lucide-react'
 import { TextPart } from './TextPart'
 import { SquareFill } from '@/components/ui/square-fill'

@@ -1,4 +1,4 @@
-import { DEFAULTS } from '@opencode-manager/shared/config'
+import { DEFAULTS } from '@costrict-manager/shared/config'
 
 type SSEEventHandler = (data: unknown) => void
 type SSEStatusHandler = (connected: boolean) => void

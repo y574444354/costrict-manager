@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useImperativeHandle, forwardRef, memo, type KeyboardEvent } from 'react'
-import { useSendPrompt, useAbortSession, useSendShell, useAgents } from '@/hooks/useOpenCode'
+import { useSendPrompt, useAbortSession, useSendShell, useAgents } from '@/hooks/useClient'
 import { useCommands } from '@/hooks/useCommands'
 import { useCommandHandler } from '@/hooks/useCommandHandler'
 import { useFileSearch } from '@/hooks/useFileSearch'
@@ -25,7 +25,7 @@ import { AgentQuickSelect } from '@/components/agent/AgentQuickSelect'
 import { detectMentionTrigger, parsePromptToParts, getFilename, filterAgentsByQuery } from '@/lib/promptParser'
 
 
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 import type { FileAttachmentInfo, ImageAttachment } from '@/api/types'
 
 const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/heic", "image/heif"]
@@ -51,7 +51,7 @@ export interface PromptInputHandle {
 }
 
 interface PromptInputProps {
-  opcodeUrl: string
+  coststrictUrl: string
   directory?: string
   sessionID: string
   disabled?: boolean
@@ -67,7 +67,7 @@ interface PromptInputProps {
 }
 
 export const PromptInput = memo(forwardRef<PromptInputHandle, PromptInputProps>(function PromptInput({ 
-  opcodeUrl,
+  coststrictUrl,
   directory,
   sessionID, 
   disabled,
@@ -137,12 +137,12 @@ export const PromptInput = memo(forwardRef<PromptInputHandle, PromptInputProps>(
       fileInputRef.current?.click()
     }
   }), [imageAttachments, clearSTT, isRecording, abortRecording])
-  const sendPrompt = useSendPrompt(opcodeUrl, directory)
-  const sendShell = useSendShell(opcodeUrl, directory)
-  const abortSession = useAbortSession(opcodeUrl, directory, sessionID)
-  const { filterCommands } = useCommands(opcodeUrl)
+  const sendPrompt = useSendPrompt(coststrictUrl, directory)
+  const sendShell = useSendShell(coststrictUrl, directory)
+  const abortSession = useAbortSession(coststrictUrl, directory, sessionID)
+  const { filterCommands } = useCommands(coststrictUrl)
   const { executeCommand } = useCommandHandler({
-    opcodeUrl,
+    coststrictUrl,
     sessionID,
     directory,
     onShowSessionsDialog,
@@ -154,13 +154,13 @@ export const PromptInput = memo(forwardRef<PromptInputHandle, PromptInputProps>(
   })
   
   const { files: searchResults } = useFileSearch(
-    opcodeUrl,
+    coststrictUrl,
     mentionQuery,
     showMentionSuggestions,
     directory
   )
   
-  const { data: agents = [] } = useAgents(opcodeUrl, directory)
+  const { data: agents = [] } = useAgents(coststrictUrl, directory)
   
   const mentionItems = useMemo((): MentionItem[] => {
     const filteredAgents = filterAgentsByQuery(
@@ -727,17 +727,17 @@ if (isIOS && isSecureContext && navigator.clipboard && navigator.clipboard.read)
     }
   }
 
-  const sessionAgent = useSessionAgent(opcodeUrl, sessionID, directory)
+  const sessionAgent = useSessionAgent(coststrictUrl, sessionID, directory)
   const currentMode = localMode ?? sessionAgent.agent
   const setStoredAgent = useSessionAgentStore((s) => s.setAgent)
 
-const { model, modelString } = useModelSelection(opcodeUrl, directory)
+const { model, modelString } = useModelSelection(coststrictUrl, directory)
   const currentModel = modelString || ''
   const displayModelName = model?.modelID || currentModel
   const isMobile = useMobile()
   const { setShowDialog, hasForSession: hasPermissionsForSession } = usePermissions()
   const hasPendingPermissionForSession = hasPermissionsForSession(sessionID)
-  const { hasVariants, currentVariant, cycleVariant } = useVariants(opcodeUrl, directory)
+  const { hasVariants, currentVariant, cycleVariant } = useVariants(coststrictUrl, directory)
   const showStopButton = hasActiveStream
   const hideSecondaryButtons = isMobile && hasActiveStream
 
@@ -820,7 +820,7 @@ return (
       <div className="flex gap-1.5 md:gap-2 items-center justify-between">
         <div className="flex gap-1.5 md:gap-2 items-center min-w-0">
           <AgentQuickSelect
-            opcodeUrl={opcodeUrl}
+            coststrictUrl={coststrictUrl}
             directory={directory}
             currentAgent={currentMode}
             onAgentChange={handleAgentChange}
@@ -834,7 +834,7 @@ return (
             ) : (
                !hideSecondaryButtons && (
                  <ModelQuickSelect
-                   opcodeUrl={opcodeUrl}
+                   coststrictUrl={coststrictUrl}
                    directory={directory}
                    onOpenFullDialog={() => onShowModelsDialog?.()}
                  >

@@ -1,7 +1,7 @@
 import { Database } from 'bun:sqlite'
 import path from 'path'
 import { existsSync } from 'node:fs'
-import { getWorkspacePath } from '@opencode-manager/shared/config/env'
+import { getWorkspacePath } from '@costrict-manager/shared/config/env'
 
 export interface PluginMemory {
   id: number

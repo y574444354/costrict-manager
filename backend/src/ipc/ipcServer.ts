@@ -7,12 +7,12 @@ import { logger } from '../utils/logger'
 
 function getIPCHandlePath(id: string): string {
   if (process.platform === 'win32') {
-    return `\\\\.\\pipe\\opencode-git-${id}-sock`
+    return `\\\\.\\pipe\\costrict-git-${id}-sock`
   }
   if (process.platform !== 'darwin' && process.env['XDG_RUNTIME_DIR']) {
-    return path.join(process.env['XDG_RUNTIME_DIR'], `opencode-git-${id}.sock`)
+    return path.join(process.env['XDG_RUNTIME_DIR'], `costrict-git-${id}.sock`)
   }
-  return path.join(os.tmpdir(), `opencode-git-${id}.sock`)
+  return path.join(os.tmpdir(), `costrict-git-${id}.sock`)
 }
 
 export interface IPCHandler {
@@ -106,9 +106,27 @@ export async function createIPCServer(context?: string): Promise<IPCServer> {
   }
 
   return new Promise((resolve, reject) => {
-    server.on('error', reject)
-    server.listen(ipcHandlePath, () => {
-      resolve(new IPCServer(server, ipcHandlePath))
-    })
+    // Retry logic for Windows named pipes
+    const maxRetries = process.platform === 'win32' ? 3 : 1
+    let attempt = 0
+
+    const tryListen = () => {
+      attempt++
+
+      server.once('error', (err: Error) => {
+        if (attempt < maxRetries && (err as any).code === 'ENOENT') {
+          logger.warn(`IPC server listen attempt ${attempt} failed, retrying...`)
+          setTimeout(tryListen, 100)
+        } else {
+          reject(err)
+        }
+      })
+
+      server.listen(ipcHandlePath, () => {
+        resolve(new IPCServer(server, ipcHandlePath))
+      })
+    }
+
+    tryListen()
   })
 }

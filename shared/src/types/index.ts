@@ -4,11 +4,11 @@ import {
   SettingsResponseSchema,
   UpdateSettingsRequestSchema,
   CustomCommandSchema,
-  OpenCodeConfigSchema,
-  OpenCodeConfigMetadataSchema,
-  CreateOpenCodeConfigRequestSchema,
-  UpdateOpenCodeConfigRequestSchema,
-  OpenCodeConfigResponseSchema,
+  CoStrictConfigSchema,
+  CoStrictConfigMetadataSchema,
+  CreateCoStrictConfigRequestSchema,
+  UpdateCoStrictConfigRequestSchema,
+  CoStrictConfigResponseSchema,
 } from '../schemas/settings'
 import {
   RepoSchema,
@@ -28,7 +28,7 @@ import {
 import {
   SessionSchema,
   MessageSchema,
-} from '../schemas/opencode'
+} from '../schemas/costrict'
 import {
   NotificationPreferencesSchema,
   PushSubscriptionRequestSchema,
@@ -40,11 +40,11 @@ export type UserPreferences = z.infer<typeof UserPreferencesSchema>
 export type SettingsResponse = z.infer<typeof SettingsResponseSchema>
 export type UpdateSettingsRequest = z.infer<typeof UpdateSettingsRequestSchema>
 export type CustomCommand = z.infer<typeof CustomCommandSchema>
-export type OpenCodeConfig = z.infer<typeof OpenCodeConfigMetadataSchema>
-export type OpenCodeConfigInput = z.infer<typeof OpenCodeConfigSchema>
-export type CreateOpenCodeConfigRequest = z.infer<typeof CreateOpenCodeConfigRequestSchema>
-export type UpdateOpenCodeConfigRequest = z.infer<typeof UpdateOpenCodeConfigRequestSchema>
-export type OpenCodeConfigResponse = z.infer<typeof OpenCodeConfigResponseSchema>
+export type CoStrictConfig = z.infer<typeof CoStrictConfigMetadataSchema>
+export type CoStrictConfigInput = z.infer<typeof CoStrictConfigSchema>
+export type CreateCoStrictConfigRequest = z.infer<typeof CreateCoStrictConfigRequestSchema>
+export type UpdateCoStrictConfigRequest = z.infer<typeof UpdateCoStrictConfigRequestSchema>
+export type CoStrictConfigResponse = z.infer<typeof CoStrictConfigResponseSchema>
 
 export type Repo = z.infer<typeof RepoSchema>
 export type CreateRepoRequest = z.infer<typeof CreateRepoRequestSchema>

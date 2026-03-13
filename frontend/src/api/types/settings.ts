@@ -6,11 +6,11 @@ import {
   DEFAULT_LEADER_KEY,
   type TTSConfig,
   type STTConfig,
-  type OpenCodeConfigContent,
-} from '@opencode-manager/shared'
-import type { NotificationPreferences } from '@opencode-manager/shared/types'
+  type CoStrictConfigContent,
+} from '@costrict-manager/shared'
+import type { NotificationPreferences } from '@costrict-manager/shared/types'
 
-export type { TTSConfig, STTConfig, OpenCodeConfigContent, NotificationPreferences }
+export type { TTSConfig, STTConfig, CoStrictConfigContent, NotificationPreferences }
 export { DEFAULT_TTS_CONFIG, DEFAULT_STT_CONFIG, DEFAULT_KEYBOARD_SHORTCUTS, DEFAULT_USER_PREFERENCES, DEFAULT_LEADER_KEY }
 
 export interface CustomCommand {
@@ -69,28 +69,28 @@ export interface UpdateSettingsRequest {
   preferences: Partial<UserPreferences>
 }
 
-export interface OpenCodeConfig {
+export interface CoStrictConfig {
   id: number
   name: string
-  content: OpenCodeConfigContent
+  content: CoStrictConfigContent
   rawContent?: string
   isDefault: boolean
   createdAt: number
   updatedAt: number
 }
 
-export interface CreateOpenCodeConfigRequest {
+export interface CreateCoStrictConfigRequest {
   name: string
-  content: OpenCodeConfigContent | string
+  content: CoStrictConfigContent | string
   isDefault?: boolean
 }
 
-export interface UpdateOpenCodeConfigRequest {
-  content: OpenCodeConfigContent | string
+export interface UpdateCoStrictConfigRequest {
+  content: CoStrictConfigContent | string
   isDefault?: boolean
 }
 
-export interface OpenCodeConfigResponse {
-  configs: OpenCodeConfig[]
-  defaultConfig: OpenCodeConfig | null
+export interface CoStrictConfigResponse {
+  configs: CoStrictConfig[]
+  defaultConfig: CoStrictConfig | null
 }

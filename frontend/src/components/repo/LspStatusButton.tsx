@@ -3,13 +3,13 @@ import { Code } from 'lucide-react'
 import { useLSPStatus } from '@/hooks/useLSPStatus'
 
 interface LspStatusButtonProps {
-  opcodeUrl: string | null | undefined
+  coststrictUrl: string | null | undefined
   directory?: string
   onClick: () => void
 }
 
-export function LspStatusButton({ opcodeUrl, directory, onClick }: LspStatusButtonProps) {
-  const { data } = useLSPStatus(opcodeUrl, directory)
+export function LspStatusButton({ coststrictUrl, directory, onClick }: LspStatusButtonProps) {
+  const { data } = useLSPStatus(coststrictUrl, directory)
 
   const hasActiveServers = data && data.length > 0 && data.some(server => server.status === 'connected')
 

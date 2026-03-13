@@ -1,9 +1,9 @@
 import { memo } from 'react'
 import { AlertCircle, KeyRound, XCircle, Clock } from 'lucide-react'
-import { parseOpenCodeError, type OpenCodeError } from '@/lib/opencode-errors'
+import { parseCoStrictError, type CoStrictError } from '@/lib/errors'
 
 interface MessageErrorProps {
-  error: OpenCodeError
+  error: CoStrictError
 }
 
 const getErrorIcon = (errorName: string) => {
@@ -20,7 +20,7 @@ const getErrorIcon = (errorName: string) => {
 }
 
 export const MessageError = memo(function MessageError({ error }: MessageErrorProps) {
-  const parsed = parseOpenCodeError(error)
+  const parsed = parseCoStrictError(error)
   if (!parsed) return null
 
   const Icon = getErrorIcon(error.name)

@@ -36,7 +36,7 @@ const migration: Migration = {
     db.run('CREATE INDEX IF NOT EXISTS idx_user_id ON user_preferences(user_id)')
 
     db.run(`
-      CREATE TABLE IF NOT EXISTS opencode_configs (
+      CREATE TABLE IF NOT EXISTS costrict_configs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL DEFAULT 'default',
         config_name TEXT NOT NULL,
@@ -48,8 +48,8 @@ const migration: Migration = {
       )
     `)
 
-    db.run('CREATE INDEX IF NOT EXISTS idx_opencode_user_id ON opencode_configs(user_id)')
-    db.run('CREATE INDEX IF NOT EXISTS idx_opencode_default ON opencode_configs(user_id, is_default)')
+    db.run('CREATE INDEX IF NOT EXISTS idx_costrict_user_id ON costrict_configs(user_id)')
+    db.run('CREATE INDEX IF NOT EXISTS idx_costrict_default ON costrict_configs(user_id, is_default)')
 
     db.run(`
       CREATE TABLE IF NOT EXISTS "user" (
@@ -168,7 +168,7 @@ const migration: Migration = {
     db.run('DROP TABLE IF EXISTS "account"')
     db.run('DROP TABLE IF EXISTS "session"')
     db.run('DROP TABLE IF EXISTS "user"')
-    db.run('DROP TABLE IF EXISTS opencode_configs')
+    db.run('DROP TABLE IF EXISTS costrict_configs')
     db.run('DROP TABLE IF EXISTS user_preferences')
     db.run('DROP TABLE IF EXISTS repos')
   },

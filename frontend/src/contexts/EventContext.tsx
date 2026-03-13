@@ -2,12 +2,12 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient, useQuery } from '@tanstack/react-query'
-import { OpenCodeClient } from '@/api/opencode'
+import { CoStrictClient } from '@/api/client'
 import { listRepos } from '@/api/repos'
 import type { PermissionRequest, PermissionResponse, QuestionRequest, SSEEvent, SSHHostKeyRequest, MessageWithParts } from '@/api/types'
 import { showToast } from '@/lib/toast'
 import { subscribeToSSE, addSSEDirectory, ensureSSEConnected } from '@/lib/sseManager'
-import { OPENCODE_API_ENDPOINT } from '@/config'
+import { COSTRICT_API_ENDPOINT } from '@/config'
 import { addToSessionKeyedState, removeFromSessionKeyedState } from '@/lib/sessionKeyedState'
 
 type PermissionsBySession = Record<string, PermissionRequest[]>
@@ -109,7 +109,7 @@ interface EventContextValue {
     navigateToCurrent: () => void
   }
   getRepoIdForSession: (sessionID: string) => number | null
-  getClient: (sessionID: string) => OpenCodeClient | null
+  getClient: (sessionID: string) => CoStrictClient | null
 }
 
 const EventContext = createContext<EventContextValue | null>(null)
@@ -135,7 +135,7 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
   const [questionsBySession, setQuestionsBySession] = useState<QuestionsBySession>({})
   const [showPermissionDialog, setShowPermissionDialog] = useState(true)
 
-  const clientsRef = useRef<Map<string, OpenCodeClient>>(new Map())
+  const clientsRef = useRef<Map<string, CoStrictClient>>(new Map())
   const prevPermissionCountRef = useRef(0)
   const initialFetchDoneRef = useRef(false)
   const MAX_CACHED_CLIENTS = 50
@@ -199,7 +199,7 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
     return repo?.id ?? null
   }, [repos, findSessionInCache])
 
-  const getClient = useCallback((sessionID: string): OpenCodeClient | null => {
+  const getClient = useCallback((sessionID: string): CoStrictClient | null => {
     const result = findSessionInCache(sessionID)
     if (!result) return null
 
@@ -210,7 +210,7 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
         const firstKey = clientsRef.current.keys().next().value
         if (firstKey) clientsRef.current.delete(firstKey)
       }
-      client = new OpenCodeClient(result.url, result.directory)
+      client = new CoStrictClient(result.url, result.directory)
       clientsRef.current.set(clientKey, client)
     }
     return client
@@ -346,7 +346,7 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
     
     for (const directory of uniqueDirectories) {
       try {
-        const client = new OpenCodeClient(OPENCODE_API_ENDPOINT, directory)
+        const client = new CoStrictClient(COSTRICT_API_ENDPOINT, directory)
         const pendingQuestions = await client.listPendingQuestions()
         if (pendingQuestions && pendingQuestions.length > 0) {
           pendingQuestions.forEach(addQuestion)

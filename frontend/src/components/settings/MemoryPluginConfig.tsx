@@ -13,7 +13,7 @@ import { ChevronDown, ChevronRight, Save, Loader2, Database, Brain, AlertCircle,
 import { getPluginConfig, updatePluginConfig, reindexMemories, testEmbeddingConfig } from '@/api/memory'
 import { FetchError } from '@/api/fetchWrapper'
 import { settingsApi } from '@/api/settings'
-import type { PluginConfig, EmbeddingProviderType } from '@opencode-manager/shared/types'
+import type { PluginConfig, EmbeddingProviderType } from '@costrict-manager/shared/types'
 import { showToast } from '@/lib/toast'
 
 const EMBEDDING_PROVIDERS: { value: EmbeddingProviderType; label: string }[] = [
@@ -166,7 +166,7 @@ export function MemoryPluginConfig({ memoryPluginEnabled, onToggle }: MemoryPlug
       onSuccess: async () => {
         showToast.loading('Restarting OpenCode server...', { id: 'memory-save' })
         try {
-          await settingsApi.restartOpenCodeServer()
+          await settingsApi.restartCoStrictServer()
           showToast.success('Configuration saved and server restarted', { id: 'memory-save' })
         } catch {
           showToast.error('Failed to restart server', { id: 'memory-save' })

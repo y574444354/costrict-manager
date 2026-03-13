@@ -2,15 +2,15 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import { proxyRequest } from '../services/proxy'
 import { logger } from '../utils/logger'
-import { ENV } from '@opencode-manager/shared/config/env'
+import { ENV } from '@costrict-manager/shared/config/env'
 import {
   OAuthAuthorizeRequestSchema,
   OAuthAuthorizeResponseSchema,
   OAuthCallbackRequestSchema
 } from '../../../shared/src/schemas/auth'
-import { opencodeServerManager } from '../services/opencode-single-server'
+import { costrictServerManager } from '../services/costrict-server'
 
-const OPENCODE_SERVER_URL = `http://${ENV.OPENCODE.HOST}:${ENV.OPENCODE.PORT}`
+const OPENCODE_SERVER_URL = `http://${ENV.COSTRICT.HOST}:${ENV.COSTRICT.PORT}`
 
 export function createOAuthRoutes() {
   const app = new Hono()
@@ -21,7 +21,7 @@ export function createOAuthRoutes() {
       const body = await c.req.json()
       const validated = OAuthAuthorizeRequestSchema.parse(body)
       
-      // Proxy to OpenCode server
+      // Proxy to CoStrict server
       const response = await proxyRequest(
         new Request(
           `${OPENCODE_SERVER_URL}/provider/${providerId}/oauth/authorize`,
@@ -58,7 +58,7 @@ export function createOAuthRoutes() {
       const body = await c.req.json()
       const validated = OAuthCallbackRequestSchema.parse(body)
       
-      // Proxy to OpenCode server
+      // Proxy to CoStrict server
       const response = await proxyRequest(
         new Request(
           `${OPENCODE_SERVER_URL}/provider/${providerId}/oauth/callback`,
@@ -78,8 +78,8 @@ export function createOAuthRoutes() {
 
       const data = await response.json()
       
-      logger.info(`OAuth callback successful for ${providerId}, reloading OpenCode configuration`)
-      await opencodeServerManager.reloadConfig()
+      logger.info(`OAuth callback successful for ${providerId}, reloading CoStrict configuration`)
+      await costrictServerManager.reloadConfig()
       
       return c.json(data)
     } catch (error) {
@@ -93,7 +93,7 @@ export function createOAuthRoutes() {
 
   app.get('/auth-methods', async (c) => {
     try {
-      // Proxy to OpenCode server
+      // Proxy to CoStrict server
       const response = await proxyRequest(
         new Request(`${OPENCODE_SERVER_URL}/provider/auth`, {
           method: 'GET',
@@ -109,7 +109,7 @@ export function createOAuthRoutes() {
 
       const data = await response.json()
       
-      // The OpenCode server returns the format we need directly
+      // The CoStrict server returns the format we need directly
       return c.json({ providers: data })
     } catch (error) {
       logger.error('Provider auth methods error:', error)

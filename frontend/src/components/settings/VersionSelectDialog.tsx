@@ -17,28 +17,28 @@ export function VersionSelectDialog({ open, onOpenChange }: VersionSelectDialogP
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null)
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['opencode-versions'],
-    queryFn: () => settingsApi.getOpenCodeVersions(),
+    queryKey: ['costrict-versions'],
+    queryFn: () => settingsApi.getCoStrictVersions(),
     enabled: open,
     staleTime: 60000,
   })
 
   const installMutation = useMutation({
-    mutationFn: (version: string) => settingsApi.installOpenCodeVersion(version),
+    mutationFn: (version: string) => settingsApi.installCoStrictVersion(version),
     onSuccess: (result) => {
       if (result.newVersion) {
         queryClient.setQueryData(['health'], (old: Record<string, unknown> | undefined) => {
           if (!old) return old
-          return { ...old, opencodeVersion: result.newVersion }
+          return { ...old, costrictVersion: result.newVersion }
         })
       }
-      queryClient.invalidateQueries({ queryKey: ['opencode-versions'] })
+      queryClient.invalidateQueries({ queryKey: ['costrict-versions'] })
       invalidateConfigCaches(queryClient)
       showToast.success(result.message)
       onOpenChange(false)
     },
     onError: (error) => {
-      queryClient.invalidateQueries({ queryKey: ['opencode-versions'] })
+      queryClient.invalidateQueries({ queryKey: ['costrict-versions'] })
       invalidateConfigCaches(queryClient)
       
       if (error && typeof error === 'object' && 'response' in error) {
@@ -48,7 +48,7 @@ export function VersionSelectDialog({ open, onOpenChange }: VersionSelectDialogP
         if (data?.recovered) {
           queryClient.setQueryData(['health'], (old: Record<string, unknown> | undefined) => {
             if (!old) return old
-            return { ...old, opencodeVersion: data.newVersion }
+            return { ...old, costrictVersion: data.newVersion }
           })
           showToast.success(`Install failed but server recovered at v${data.newVersion}`)
         } else {
@@ -62,7 +62,7 @@ export function VersionSelectDialog({ open, onOpenChange }: VersionSelectDialogP
 
   const handleInstall = () => {
     if (!selectedVersion) return
-    showToast.loading(`Installing OpenCode v${selectedVersion}...`, { id: 'install-version' })
+    showToast.loading(`Installing CoStrict v${selectedVersion}...`, { id: 'install-version' })
     installMutation.mutate(selectedVersion, {
       onSettled: () => {
         showToast.dismiss('install-version')
@@ -82,7 +82,7 @@ export function VersionSelectDialog({ open, onOpenChange }: VersionSelectDialogP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Select OpenCode Version</DialogTitle>
+          <DialogTitle>Select CoStrict Version</DialogTitle>
           <DialogDescription>
             Choose a version to install. Current version: {data?.currentVersion ? `v${data.currentVersion}` : 'Unknown'}
           </DialogDescription>

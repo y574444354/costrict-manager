@@ -29,7 +29,7 @@ Complete reference for all configuration options.
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `PASSKEY_RP_ID` | Relying party ID (your domain) | `localhost` |
-| `PASSKEY_RP_NAME` | Display name for passkey prompts | `OpenCode Manager` |
+| `PASSKEY_RP_NAME` | Display name for passkey prompts | `CoStrict Manager` |
 | `PASSKEY_ORIGIN` | Origin URL for WebAuthn (backend port) | `http://localhost:5003` |
 
 
@@ -80,7 +80,7 @@ When configured, users can enable push notifications in Settings → Notificatio
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DATABASE_PATH` | Path to SQLite database file | `./data/opencode.db` |
+| `DATABASE_PATH` | Path to SQLite database file | `./data/costrict.db` |
 
 ## Workspace
 
@@ -88,18 +88,18 @@ When configured, users can enable push notifications in Settings → Notificatio
 |----------|-------------|---------|
 | `WORKSPACE_PATH` | Path to workspace directory | `./workspace` (Docker: `/workspace`) |
 
-## OpenCode Server
+## CoStrict Server
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OPENCODE_SERVER_PORT` | Port for the OpenCode CLI server | `5551` |
-| `OPENCODE_HOST` | OpenCode server bind address | `127.0.0.1` |
+| `OPENCODE_SERVER_PORT` | Port for the CoStrict CLI server | `5551` |
+| `OPENCODE_HOST` | CoStrict server bind address | `127.0.0.1` |
 
 ## Timeouts
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `PROCESS_START_WAIT_MS` | Wait time for OpenCode process to start | `2000` |
+| `PROCESS_START_WAIT_MS` | Wait time for CoStrict process to start | `2000` |
 | `PROCESS_VERIFY_WAIT_MS` | Wait time for process health verification | `1000` |
 | `HEALTH_CHECK_INTERVAL_MS` | Health check polling interval | `5000` |
 | `HEALTH_CHECK_TIMEOUT_MS` | Health check timeout | `30000` |
@@ -117,7 +117,7 @@ When configured, users can enable push notifications in Settings → Notificatio
 |----------|-------------|---------|
 | `VITE_API_URL` | Backend API URL for frontend | `http://localhost:5003` |
 | `VITE_SERVER_PORT` | Backend port hint for frontend | `5003` |
-| `VITE_OPENCODE_PORT` | OpenCode server port hint | `5551` |
+| `VITE_OPENCODE_PORT` | CoStrict server port hint | `5551` |
 | `VITE_MAX_FILE_SIZE_MB` | File size limit for frontend | `50` |
 | `VITE_MAX_UPLOAD_SIZE_MB` | Upload size limit for frontend | `50` |
 
@@ -146,7 +146,7 @@ GITHUB_CLIENT_SECRET=your-client-secret
 
 # Passkeys (optional - use BACKEND port)
 PASSKEY_RP_ID=localhost
-PASSKEY_RP_NAME=OpenCode Manager
+PASSKEY_RP_NAME=CoStrict Manager
 PASSKEY_ORIGIN=http://localhost:5003
 
 # Push notifications (optional)

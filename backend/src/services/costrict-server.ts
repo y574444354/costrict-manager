@@ -3,7 +3,7 @@ import path from 'path'
 import { promises as fs } from 'fs'
 import { logger } from '../utils/logger'
 import { createGitEnv, createGitIdentityEnv, resolveGitIdentity } from '../utils/git-auth'
-import type { GitCredential } from '@opencode-manager/shared'
+import type { GitCredential } from '@costrict-manager/shared'
 import {
   buildSSHCommandWithKnownHosts,
   buildSSHCommandWithConfig,
@@ -16,22 +16,22 @@ import {
 } from '../utils/ssh-key-manager'
 import { decryptSecret } from '../utils/crypto'
 import { SettingsService } from './settings'
-import { getWorkspacePath, getOpenCodeConfigFilePath, ENV } from '@opencode-manager/shared/config/env'
+import { getWorkspacePath, getCoStrictConfigFilePath, ENV } from '@costrict-manager/shared/config/env'
 import type { Database } from 'bun:sqlite'
 import { compareVersions } from '../utils/version-utils'
 
-const OPENCODE_SERVER_PORT = ENV.OPENCODE.PORT
-const OPENCODE_SERVER_HOST = ENV.OPENCODE.HOST
-const MIN_OPENCODE_VERSION = '1.0.137'
+const COSTRICT_SERVER_PORT = ENV.COSTRICT.PORT
+const COSTRICT_SERVER_HOST = ENV.COSTRICT.HOST
+const MIN_COSTRICT_VERSION = '1.0.137'
 const MAX_STDERR_SIZE = 10240
 
 // Helper getters to ensure values are computed at runtime (not module load time)
 // This allows proper mocking in tests
-const getOpenCodeServerDirectory = () => getWorkspacePath()
-const getOpenCodeConfigPath = () => getOpenCodeConfigFilePath()
+const getCoStrictServerDirectory = () => getWorkspacePath()
+const getCoStrictConfigPath = () => getCoStrictConfigFilePath()
 
-class OpenCodeServerManager {
-  private static instance: OpenCodeServerManager
+class CoStrictServerManager {
+  private static instance: CoStrictServerManager
   private serverProcess: ReturnType<typeof spawn> | null = null
   private serverPid: number | null = null
   private isHealthy: boolean = false
@@ -45,11 +45,11 @@ class OpenCodeServerManager {
     this.db = db
   }
 
-  static getInstance(): OpenCodeServerManager {
-    if (!OpenCodeServerManager.instance) {
-      OpenCodeServerManager.instance = new OpenCodeServerManager()
+  static getInstance(): CoStrictServerManager {
+    if (!CoStrictServerManager.instance) {
+      CoStrictServerManager.instance = new CoStrictServerManager()
     }
-    return OpenCodeServerManager.instance
+    return CoStrictServerManager.instance
   }
 
   /**
@@ -57,12 +57,12 @@ class OpenCodeServerManager {
    * Should only be used in test setup/teardown.
    */
   static resetInstance(): void {
-    OpenCodeServerManager.instance = null as unknown as OpenCodeServerManager
+    CoStrictServerManager.instance = null as unknown as CoStrictServerManager
   }
 
   async start(): Promise<void> {
     if (this.isHealthy) {
-      logger.info('OpenCode server already running and healthy')
+      logger.info('CoStrict server already running and healthy')
       return
     }
 
@@ -86,9 +86,9 @@ class OpenCodeServerManager {
       }
     }
 
-    const existingProcesses = await this.findProcessesByPort(OPENCODE_SERVER_PORT)
+    const existingProcesses = await this.findProcessesByPort(COSTRICT_SERVER_PORT)
     if (existingProcesses.length > 0) {
-      logger.info(`OpenCode server already running on port ${OPENCODE_SERVER_PORT}`)
+      logger.info(`CoStrict server already running on port ${COSTRICT_SERVER_PORT}`)
       const healthy = await this.checkHealth()
       if (healthy) {
         if (isDevelopment) {
@@ -109,7 +109,7 @@ class OpenCodeServerManager {
           return
         }
       } else {
-        logger.warn('Killing unhealthy OpenCode server')
+        logger.warn('Killing unhealthy CoStrict server')
         for (const proc of existingProcesses) {
           try {
             process.kill(proc.pid, 'SIGKILL')
@@ -121,11 +121,11 @@ class OpenCodeServerManager {
       }
     }
 
-    const openCodeServerDirectory = getOpenCodeServerDirectory()
-    const openCodeConfigPath = getOpenCodeConfigPath()
-    logger.info(`OpenCode server working directory: ${openCodeServerDirectory}`)
-    logger.info(`OpenCode XDG_CONFIG_HOME: ${path.join(openCodeServerDirectory, '.config')}`)
-    logger.info(`OpenCode will use ?directory= parameter for session isolation`)
+    const costrictServerDirectory = getCoStrictServerDirectory()
+    const costrictConfigPath = getCoStrictConfigPath()
+    logger.info(`CoStrict server working directory: ${costrictServerDirectory}`)
+    logger.info(`CoStrict XDG_CONFIG_HOME: ${path.join(costrictServerDirectory, '.config')}`)
+    logger.info(`CoStrict will use ?directory= parameter for session isolation`)
 
     const gitEnv = createGitEnv(gitCredentials)
     const knownHostsPath = path.join(getWorkspacePath(), 'config', 'known_hosts')
@@ -134,7 +134,7 @@ class OpenCodeServerManager {
 
     const sshCredentials = gitCredentials.filter(cred => cred.type === 'ssh' && cred.sshPrivateKeyEncrypted)
     if (sshCredentials.length > 0) {
-      logger.info(`Setting up ${sshCredentials.length} SSH credential(s) for OpenCode server`)
+      logger.info(`Setting up ${sshCredentials.length} SSH credential(s) for CoStrict server`)
 
       const sshConfigEntries: Array<{ hostname: string, port: string, keyPath: string }> = []
 
@@ -163,7 +163,7 @@ class OpenCodeServerManager {
         sshConfigPath = path.join(getWorkspacePath(), 'config', 'ssh_config')
         await writeSSHConfig(sshConfigPath, sshConfigContent)
         gitSshCommand = buildSSHCommandWithConfig(sshConfigPath, knownHostsPath)
-        logger.info(`OpenCode server SSH config written to ${sshConfigPath} with ${sshConfigEntries.length} host(s)`)
+        logger.info(`CoStrict server SSH config written to ${sshConfigPath} with ${sshConfigEntries.length} host(s)`)
       } else {
         gitSshCommand = buildSSHCommandWithKnownHosts(knownHostsPath)
         logger.warn(`No SSH credentials could be set up, using default known_hosts only`)
@@ -172,17 +172,17 @@ class OpenCodeServerManager {
       gitSshCommand = buildSSHCommandWithKnownHosts(knownHostsPath)
     }
 
-    logger.info(`OpenCode server GIT_SSH_COMMAND: ${gitSshCommand}`)
+    logger.info(`CoStrict server GIT_SSH_COMMAND: ${gitSshCommand}`)
 
-    await this.initializeOpencodeBinDirectory()
+    await this.initializeCostrictBinDirectory()
 
     let stderrOutput = ''
 
     this.serverProcess = spawn(
-      'opencode',
-      ['serve', '--port', OPENCODE_SERVER_PORT.toString(), '--hostname', OPENCODE_SERVER_HOST],
+      'cs',
+      ['serve', '--port', COSTRICT_SERVER_PORT.toString(), '--hostname', COSTRICT_SERVER_HOST],
       {
-        cwd: openCodeServerDirectory,
+        cwd: costrictServerDirectory,
         detached: !isDevelopment,
         stdio: isDevelopment ? 'inherit' : ['ignore', 'pipe', 'pipe'],
         env: {
@@ -190,9 +190,9 @@ class OpenCodeServerManager {
           ...gitEnv,
           ...gitIdentityEnv,
           GIT_SSH_COMMAND: gitSshCommand,
-          XDG_DATA_HOME: path.join(openCodeServerDirectory, '.opencode/state'),
-          XDG_CONFIG_HOME: path.join(openCodeServerDirectory, '.config'),
-          OPENCODE_CONFIG: openCodeConfigPath,
+          XDG_DATA_HOME: path.join(costrictServerDirectory, '.costrict/state'),
+          XDG_CONFIG_HOME: path.join(costrictServerDirectory, '.config'),
+          COSTRICT_CONFIG: costrictConfigPath,
         }
       }
     )
@@ -209,31 +209,32 @@ class OpenCodeServerManager {
     this.serverProcess.on('exit', (code, signal) => {
       if (code !== null && code !== 0) {
         this.lastStartupError = `Server exited with code ${code}${stderrOutput ? `: ${stderrOutput.slice(-500)}` : ''}`
-        logger.error('OpenCode server process exited:', this.lastStartupError)
+        logger.error('CoStrict server process exited:', this.lastStartupError)
       } else if (signal) {
         this.lastStartupError = `Server terminated by signal ${signal}`
-        logger.error('OpenCode server process terminated:', this.lastStartupError)
+        logger.error('CoStrict server process terminated:', this.lastStartupError)
       }
     })
 
     this.serverPid = this.serverProcess.pid ?? null
 
-    logger.info(`OpenCode server started with PID ${this.serverPid}`)
+    logger.info(`CoStrict server started with PID ${this.serverPid}`)
 
+    logger.info('Waiting for CoStrict server to become healthy...')
     const healthy = await this.waitForHealth(30000)
     if (!healthy) {
       this.lastStartupError = `Server failed to become healthy after 30s${stderrOutput ? `. Last error: ${stderrOutput.slice(-500)}` : ''}`
-      throw new Error('OpenCode server failed to become healthy')
+      throw new Error('CoStrict server failed to become healthy')
     }
 
     this.isHealthy = true
-    logger.info('OpenCode server is healthy')
+    logger.info('CoStrict server is healthy')
 
     await this.fetchVersion()
     if (this.version) {
-      logger.info(`OpenCode version: ${this.version}`)
+      logger.info(`CoStrict version: ${this.version}`)
       if (!this.isVersionSupported()) {
-        logger.warn(`OpenCode version ${this.version} is below minimum required version ${MIN_OPENCODE_VERSION}`)
+        logger.warn(`CoStrict version ${this.version} is below minimum required version ${MIN_COSTRICT_VERSION}`)
         logger.warn('Some features like MCP management may not work correctly')
       }
     }
@@ -242,7 +243,7 @@ class OpenCodeServerManager {
   async stop(): Promise<void> {
     if (!this.serverPid) return
 
-    logger.info('Stopping OpenCode server')
+    logger.info('Stopping CoStrict server')
     try {
       process.kill(this.serverPid, 'SIGTERM')
     } catch (error) {
@@ -277,12 +278,12 @@ class OpenCodeServerManager {
     }
   }
 
-  private async initializeOpencodeBinDirectory(): Promise<void> {
+  private async initializeCostrictBinDirectory(): Promise<void> {
     const binDir = path.join(
-      getOpenCodeServerDirectory(),
-      '.opencode',
+      getCoStrictServerDirectory(),
+      '.costrict',
       'state',
-      'opencode',
+      'costrict',
       'bin'
     )
 
@@ -305,7 +306,7 @@ class OpenCodeServerManager {
             stdio: 'inherit',
             timeout: 30000
           })
-          logger.info('OpenCode bin directory initialized successfully')
+          logger.info('CoStrict bin directory initialized successfully')
         } catch (error) {
           logger.error('bun init failed:', error)
           throw new Error(`bun init failed: ${error}`)
@@ -313,21 +314,21 @@ class OpenCodeServerManager {
       }
 
     } catch (error) {
-      logger.error('Failed to initialize OpenCode bin directory:', error)
+      logger.error('Failed to initialize CoStrict bin directory:', error)
     }
   }
 
   async restart(): Promise<void> {
-    logger.info('Restarting OpenCode server (full process restart)')
+    logger.info('Restarting CoStrict server (full process restart)')
     await this.stop()
     await new Promise(r => setTimeout(r, 1000))
     await this.start()
   }
 
   async reloadConfig(): Promise<void> {
-    logger.info('Reloading OpenCode configuration (via API)')
+    logger.info('Reloading CoStrict configuration (via API)')
     try {
-      const response = await fetch(`http://${OPENCODE_SERVER_HOST}:${OPENCODE_SERVER_PORT}/config`, {
+      const response = await fetch(`http://${COSTRICT_SERVER_HOST}:${COSTRICT_SERVER_PORT}/config`, {
         method: 'GET'
       })
 
@@ -336,8 +337,8 @@ class OpenCodeServerManager {
       }
 
       const currentConfig = await response.json()
-      logger.info('Triggering OpenCode config reload via PATCH')
-      const patchResponse = await fetch(`http://${OPENCODE_SERVER_HOST}:${OPENCODE_SERVER_PORT}/config`, {
+      logger.info('Triggering CoStrict config reload via PATCH')
+      const patchResponse = await fetch(`http://${COSTRICT_SERVER_HOST}:${COSTRICT_SERVER_PORT}/config`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentConfig)
@@ -347,20 +348,20 @@ class OpenCodeServerManager {
         throw new Error(`Failed to reload config: ${patchResponse.status}`)
       }
 
-      logger.info('OpenCode configuration reloaded successfully')
+      logger.info('CoStrict configuration reloaded successfully')
       await new Promise(r => setTimeout(r, 500))
       const healthy = await this.checkHealth()
       if (!healthy) {
         throw new Error('Server unhealthy after config reload')
       }
     } catch (error) {
-      logger.error('Failed to reload OpenCode config:', error)
+      logger.error('Failed to reload CoStrict config:', error)
       throw error
     }
   }
 
   getPort(): number {
-    return OPENCODE_SERVER_PORT
+    return COSTRICT_SERVER_PORT
   }
 
   getVersion(): string | null {
@@ -368,12 +369,12 @@ class OpenCodeServerManager {
   }
 
   getMinVersion(): string {
-    return MIN_OPENCODE_VERSION
+    return MIN_COSTRICT_VERSION
   }
 
   isVersionSupported(): boolean {
     if (!this.version) return false
-    return compareVersions(this.version, MIN_OPENCODE_VERSION) >= 0
+    return compareVersions(this.version, MIN_COSTRICT_VERSION) >= 0
   }
 
   getLastStartupError(): string | null {
@@ -385,13 +386,13 @@ class OpenCodeServerManager {
   }
 
   async reinitializeBinDirectory(): Promise<void> {
-    logger.info('Reinitializing OpenCode bin directory')
-    await this.initializeOpencodeBinDirectory()
+    logger.info('Reinitializing CoStrict bin directory')
+    await this.initializeCostrictBinDirectory()
   }
 
   async checkHealth(): Promise<boolean> {
     try {
-      const response = await fetch(`http://${OPENCODE_SERVER_HOST}:${OPENCODE_SERVER_PORT}/doc`, {
+      const response = await fetch(`http://${COSTRICT_SERVER_HOST}:${COSTRICT_SERVER_PORT}/doc`, {
         signal: AbortSignal.timeout(3000)
       })
       return response.ok
@@ -402,38 +403,73 @@ class OpenCodeServerManager {
 
   async fetchVersion(): Promise<string | null> {
     try {
-      const result = execSync('opencode --version 2>&1', { encoding: 'utf8' })
+      const result = execSync('cs --version 2>&1', { encoding: 'utf8' })
       const match = result.match(/(\d+\.\d+\.\d+)/)
       if (match && match[1]) {
         this.version = match[1]
         return this.version
       }
     } catch (error) {
-      logger.warn('Failed to get OpenCode version:', error)
+      logger.warn('Failed to get CoStrict version:', error)
     }
     return null
   }
 
   private async waitForHealth(timeoutMs: number): Promise<boolean> {
     const start = Date.now()
+    let attempts = 0
     while (Date.now() - start < timeoutMs) {
-      if (await this.checkHealth()) {
-        return true
+      attempts++
+      try {
+        const isHealthy = await this.checkHealth()
+        if (isHealthy) {
+          logger.info(`CoStrict server health check passed (attempt ${attempts})`)
+          return true
+        }
+      } catch (error) {
+        logger.debug(`Health check attempt ${attempts} failed:`, error)
       }
       await new Promise(r => setTimeout(r, 500))
     }
+    logger.warn(`CoStrict server health check failed after ${attempts} attempts`)
     return false
   }
 
   private async findProcessesByPort(port: number): Promise<Array<{pid: number}>> {
     try {
-      const pids = execSync(`lsof -ti:${port}`).toString().trim().split('\n')
-      return pids.filter(Boolean).map(pid => ({ pid: parseInt(pid) }))
+      let command: string
+      if (process.platform === 'win32') {
+        // Windows: use netstat
+        command = `netstat -ano | findstr :${port} | findstr LISTENING`
+      } else {
+        // Unix-like: use lsof
+        command = `lsof -ti:${port}`
+      }
+
+      const output = execSync(command, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+
+      if (process.platform === 'win32') {
+        // Parse netstat output: "TCP    0.0.0.0:5551    0.0.0.0:0    LISTENING    12345"
+        const lines = output.trim().split('\n')
+        const pids = new Set<number>()
+        for (const line of lines) {
+          const parts = line.trim().split(/\s+/)
+          const pid = parts[parts.length - 1]
+          if (pid && /^\d+$/.test(pid)) {
+            pids.add(parseInt(pid))
+          }
+        }
+        return Array.from(pids).map(pid => ({ pid }))
+      } else {
+        // Parse lsof output: just PIDs separated by newlines
+        const pids = output.trim().split('\n')
+        return pids.filter(Boolean).map(pid => ({ pid: parseInt(pid) }))
+      }
     } catch {
       return []
     }
   }
 }
 
-export const opencodeServerManager = OpenCodeServerManager.getInstance()
-export { OpenCodeServerManager }
+export const costrictServerManager = CoStrictServerManager.getInstance()
+export { CoStrictServerManager }

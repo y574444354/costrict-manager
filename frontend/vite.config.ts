@@ -5,7 +5,8 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, path.resolve(__dirname, ".."), "");
-  const backendPort = env.PORT || 5001;
+  // 读取 PORT，如果不存在则使用默认值 5003（与 .env.example 中的一致）
+  const backendPort = env.PORT || 5003;
 
   return {
     envDir: path.resolve(__dirname, ".."),
@@ -23,7 +24,7 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         "/api": {
-          target: `http://localhost:${backendPort}`,
+          target: `http://127.0.0.1:${backendPort}`,
           changeOrigin: true,
         },
       },

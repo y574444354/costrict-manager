@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createOpenCodeClient } from '@/api/opencode'
+import { createCoStrictClient } from '@/api/client'
 import { showToast } from '@/lib/toast'
 import type { MessageWithParts } from '@/api/types'
 
 interface UseUndoMessageOptions {
-  opcodeUrl: string | null
+  coststrictUrl: string | null
   sessionId: string
   directory?: string
   onSuccess?: (restoredPrompt: string) => void
@@ -15,7 +15,7 @@ interface UndoMessageContext {
 }
 
 export function useUndoMessage({ 
-  opcodeUrl, 
+  coststrictUrl, 
   sessionId, 
   directory,
   onSuccess 
@@ -24,14 +24,14 @@ export function useUndoMessage({
 
   return useMutation<string, Error, { messageID: string; messageContent: string }, UndoMessageContext>({
     mutationFn: async ({ messageID, messageContent }: { messageID: string, messageContent: string }) => {
-      if (!opcodeUrl) throw new Error('OpenCode URL not available')
+      if (!coststrictUrl) throw new Error('OpenCode URL not available')
       
-      const client = createOpenCodeClient(opcodeUrl, directory)
+      const client = createCoStrictClient(coststrictUrl, directory)
       await client.revertMessage(sessionId, { messageID })
       return messageContent
     },
     onMutate: async ({ messageID }) => {
-      const queryKey = ['opencode', 'messages', opcodeUrl, sessionId, directory]
+      const queryKey = ['opencode', 'messages', coststrictUrl, sessionId, directory]
       
       await queryClient.cancelQueries({ queryKey })
       
@@ -50,7 +50,7 @@ export function useUndoMessage({
     onError: (_error, _variables, _context: UndoMessageContext | undefined) => {
       if (_context?.previousMessages) {
         queryClient.setQueryData(
-          ['opencode', 'messages', opcodeUrl, sessionId, directory],
+          ['opencode', 'messages', coststrictUrl, sessionId, directory],
           _context.previousMessages
         )
       }
@@ -59,10 +59,10 @@ export function useUndoMessage({
     },
     onSuccess: (restoredPrompt) => {
       queryClient.invalidateQueries({
-        queryKey: ['opencode', 'messages', opcodeUrl, sessionId, directory]
+        queryKey: ['opencode', 'messages', coststrictUrl, sessionId, directory]
       })
       queryClient.invalidateQueries({
-        queryKey: ['opencode', 'session', opcodeUrl, sessionId, directory]
+        queryKey: ['opencode', 'session', coststrictUrl, sessionId, directory]
       })
       onSuccess?.(restoredPrompt)
     }

@@ -1,4 +1,13 @@
 <svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="400" height="400" fill="#0E0E0E"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M312 340H88V60H312V340ZM256 116H144V284H256V116Z" fill="white"/>
+  <rect width="400" height="400" rx="80" fill="#0F172A"/>
+  <defs>
+    <linearGradient id="csGrad" x1="40" y1="40" x2="360" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#818CF8"/>
+    </linearGradient>
+  </defs>
+  <!-- C -->
+  <path d="M 185,72 C 138,68 62,96 62,200 C 62,304 138,332 185,328" stroke="url(#csGrad)" stroke-width="34" stroke-linecap="round" fill="none"/>
+  <!-- S: 顶部右侧开始，向左弯，中间过渡，底部向右结束 -->
+  <path d="M 318,96 C 290,72 228,78 228,118 C 228,152 260,166 282,176 C 310,188 330,206 330,240 C 330,278 282,326 228,318" stroke="url(#csGrad)" stroke-width="34" stroke-linecap="round" fill="none"/>
 </svg>

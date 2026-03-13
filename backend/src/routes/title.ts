@@ -1,14 +1,14 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { logger } from '../utils/logger'
-import { ENV } from '@opencode-manager/shared/config/env'
+import { ENV } from '@costrict-manager/shared/config/env'
 
 const TitleRequestSchema = z.object({
   text: z.string().min(1).max(5000),
   sessionID: z.string().min(1)
 })
 
-const OPENCODE_SERVER_URL = `http://127.0.0.1:${ENV.OPENCODE.PORT}`
+const OPENCODE_SERVER_URL = `http://127.0.0.1:${ENV.COSTRICT.PORT}`
 
 function buildUrl(path: string, directory?: string): string {
   const url = `${OPENCODE_SERVER_URL}${path}`
@@ -65,7 +65,7 @@ export function createTitleRoutes() {
 
       const configResponse = await fetch(buildUrl('/config', directory))
       if (!configResponse.ok) {
-        logger.error('Failed to fetch OpenCode config')
+        logger.error('Failed to fetch CoStrict config')
         return c.json({ error: 'Failed to fetch config' }, 500)
       }
       const config = await configResponse.json() as { model?: string; small_model?: string }

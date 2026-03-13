@@ -56,34 +56,34 @@ COPY frontend/index.html frontend/vite.config.ts frontend/tsconfig*.json fronten
 COPY packages/memory ./packages/memory
 
 RUN pnpm --filter frontend build
-RUN pnpm --filter @opencode-manager/memory build
+RUN pnpm --filter @costrict-manager/memory build
 
 FROM base AS runner
 
 ARG UV_VERSION=latest
-ARG OPENCODE_VERSION=latest
+ARG COSTRICT_VERSION=latest
 
-RUN echo "Installing uv=${UV_VERSION} opencode=${OPENCODE_VERSION}" && \
+RUN echo "Installing uv=${UV_VERSION} costrict=${COSTRICT_VERSION}" && \
     curl -LsSf https://astral.sh/uv/install.sh | UV_NO_MODIFY_PATH=1 sh && \
     mv /root/.local/bin/uv /usr/local/bin/uv && \
     mv /root/.local/bin/uvx /usr/local/bin/uvx && \
     chmod +x /usr/local/bin/uv /usr/local/bin/uvx && \
-    if [ "${OPENCODE_VERSION}" = "latest" ]; then \
-        curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path; \
+    if [ "${COSTRICT_VERSION}" = "latest" ]; then \
+        curl -fsSL https://costrict.ai/install | bash -s -- --no-modify-path; \
     else \
-        curl -fsSL https://opencode.ai/install | bash -s -- --version ${OPENCODE_VERSION} --no-modify-path; \
+        curl -fsSL https://costrict.ai/install | bash -s -- --version ${COSTRICT_VERSION} --no-modify-path; \
     fi && \
-    mv /root/.opencode /opt/opencode && \
-    chmod -R 755 /opt/opencode && \
-    ln -s /opt/opencode/bin/opencode /usr/local/bin/opencode
+    mv /root/.costrict /opt/costrict && \
+    chmod -R 755 /opt/costrict && \
+    ln -s /opt/costrict/bin/costrict /usr/local/bin/costrict
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=5003
-ENV OPENCODE_SERVER_PORT=5551
-ENV DATABASE_PATH=/app/data/opencode.db
+ENV COSTRICT_SERVER_PORT=5551
+ENV DATABASE_PATH=/app/data/costrict.db
 ENV WORKSPACE_PATH=/workspace
-ENV NODE_PATH=/opt/opencode-plugins/node_modules
+ENV NODE_PATH=/opt/costrict-plugins/node_modules
 
 COPY --from=deps --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder /app/shared ./shared
@@ -91,18 +91,18 @@ COPY --from=builder /app/backend ./backend
 COPY --from=builder /app/frontend/dist ./frontend/dist
 COPY package.json pnpm-workspace.yaml ./
 
-RUN mkdir -p /app/backend/node_modules/@opencode-manager && \
-    ln -s /app/shared /app/backend/node_modules/@opencode-manager/shared
+RUN mkdir -p /app/backend/node_modules/@costrict-manager && \
+    ln -s /app/shared /app/backend/node_modules/@costrict-manager/shared
 
-COPY --from=builder /app/packages/memory /opt/opencode-plugins/src
+COPY --from=builder /app/packages/memory /opt/costrict-plugins/src
 
-RUN cd /opt/opencode-plugins/src && npm install
+RUN cd /opt/costrict-plugins/src && npm install
 
-RUN mkdir -p /opt/opencode-plugins/node_modules/@opencode-manager/memory && \
-    cp -r /opt/opencode-plugins/src/dist/* /opt/opencode-plugins/node_modules/@opencode-manager/memory/ && \
-    cp /opt/opencode-plugins/src/package.json /opt/opencode-plugins/node_modules/@opencode-manager/memory/ && \
-    cp /opt/opencode-plugins/src/config.json /opt/opencode-plugins/node_modules/@opencode-manager/memory/config.json 2>/dev/null || true && \
-    cp -r /opt/opencode-plugins/src/node_modules/* /opt/opencode-plugins/node_modules/ 2>/dev/null || true
+RUN mkdir -p /opt/costrict-plugins/node_modules/@costrict-manager/memory && \
+    cp -r /opt/costrict-plugins/src/dist/* /opt/costrict-plugins/node_modules/@costrict-manager/memory/ && \
+    cp /opt/costrict-plugins/src/package.json /opt/costrict-plugins/node_modules/@costrict-manager/memory/ && \
+    cp /opt/costrict-plugins/src/config.json /opt/costrict-plugins/node_modules/@costrict-manager/memory/config.json 2>/dev/null || true && \
+    cp -r /opt/costrict-plugins/src/node_modules/* /opt/costrict-plugins/node_modules/ 2>/dev/null || true
 
 COPY scripts/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh

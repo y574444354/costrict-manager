@@ -1,6 +1,6 @@
 import { fetchWrapper, fetchWrapperVoid } from './fetchWrapper'
 import { API_BASE_URL } from '@/config'
-import type { Memory, MemoryStats, CreateMemoryRequest, UpdateMemoryRequest, PluginConfig } from '@opencode-manager/shared/types'
+import type { Memory, MemoryStats, CreateMemoryRequest, UpdateMemoryRequest, PluginConfig } from '@costrict-manager/shared/types'
 
 export async function listMemories(filters?: {
   projectId?: string

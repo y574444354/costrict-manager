@@ -1,16 +1,16 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createOpenCodeClient } from '@/api/opencode'
-import { useCreateSession } from '@/hooks/useOpenCode'
+import { createCoStrictClient } from '@/api/client'
+import { useCreateSession } from '@/hooks/useClient'
 import { useModelSelection } from '@/hooks/useModelSelection'
 import { showToast } from '@/lib/toast'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 import { useSessionStatus } from '@/stores/sessionStatusStore'
 
 type CommandType = components['schemas']['Command']
 
 interface CommandHandlerProps {
-  opcodeUrl: string
+  coststrictUrl: string
   sessionID: string
   directory?: string
   onShowSessionsDialog?: () => void
@@ -22,7 +22,7 @@ interface CommandHandlerProps {
 }
 
 export function useCommandHandler({
-  opcodeUrl,
+  coststrictUrl,
   sessionID,
   directory,
   onShowSessionsDialog,
@@ -33,18 +33,18 @@ export function useCommandHandler({
   currentAgent
 }: CommandHandlerProps) {
   const navigate = useNavigate()
-  const createSession = useCreateSession(opcodeUrl, directory)
-  const { model, modelString } = useModelSelection(opcodeUrl, directory)
+  const createSession = useCreateSession(coststrictUrl, directory)
+  const { model, modelString } = useModelSelection(coststrictUrl, directory)
   const setSessionStatus = useSessionStatus((state) => state.setStatus)
   const [loading, setLoading] = useState(false)
 
   const executeCommand = useCallback(async (command: CommandType, args: string = '') => {
-    if (!opcodeUrl) return
+    if (!coststrictUrl) return
 
     setLoading(true)
     
     try {
-      const client = createOpenCodeClient(opcodeUrl, directory)
+      const client = createCoStrictClient(coststrictUrl, directory)
       
       switch (command.name) {
         case 'sessions':
@@ -152,7 +152,7 @@ export function useCommandHandler({
     } finally {
       setLoading(false)
     }
-  }, [sessionID, opcodeUrl, directory, onShowSessionsDialog, onShowModelsDialog, onShowHelpDialog, onToggleDetails, onExportSession, createSession, navigate, model, modelString, currentAgent, setSessionStatus])
+  }, [sessionID, coststrictUrl, directory, onShowSessionsDialog, onShowModelsDialog, onShowHelpDialog, onToggleDetails, onExportSession, createSession, navigate, model, modelString, currentAgent, setSessionStatus])
 
   return {
     executeCommand,

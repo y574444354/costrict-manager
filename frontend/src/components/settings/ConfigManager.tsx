@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { CreateConfigDialog } from './CreateConfigDialog'
-import { OpenCodeConfigEditor } from './OpenCodeConfigEditor'
+import { ConfigEditor } from './ConfigEditor'
 import { CommandsEditor } from './CommandsEditor'
 import { AgentsEditor } from './AgentsEditor'
 import { AgentsMdEditor } from './AgentsMdEditor'
@@ -21,7 +21,7 @@ import { useServerHealth } from '@/hooks/useServerHealth'
 import { parseJsonc, hasJsoncComments } from '@/lib/jsonc'
 import { showToast } from '@/lib/toast'
 import { invalidateConfigCaches } from '@/lib/queryInvalidation'
-import type { OpenCodeConfig } from '@/api/types/settings'
+import type { CoStrictConfig } from '@/api/types/settings'
 
 interface Command {
   template: string
@@ -50,14 +50,14 @@ interface Agent {
   [key: string]: unknown
 }
 
-export function OpenCodeConfigManager() {
+export function ConfigManager() {
   const queryClient = useQueryClient()
   const { data: health } = useServerHealth()
-  const [configs, setConfigs] = useState<OpenCodeConfig[]>([])
+  const [configs, setConfigs] = useState<CoStrictConfig[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
-  const [editingConfig, setEditingConfig] = useState<OpenCodeConfig | null>(null)
-  const [selectedConfig, setSelectedConfig] = useState<OpenCodeConfig | null>(null)
+  const [editingConfig, setEditingConfig] = useState<CoStrictConfig | null>(null)
+  const [selectedConfig, setSelectedConfig] = useState<CoStrictConfig | null>(null)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     agentsMd: false,
     commands: false,
@@ -67,7 +67,7 @@ export function OpenCodeConfigManager() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false)
-  const [deleteConfirmConfig, setDeleteConfirmConfig] = useState<OpenCodeConfig | null>(null)
+  const [deleteConfirmConfig, setDeleteConfirmConfig] = useState<CoStrictConfig | null>(null)
   
   const agentsMdRef = useRef<HTMLButtonElement>(null)
   const commandsRef = useRef<HTMLButtonElement>(null)
@@ -86,7 +86,7 @@ export function OpenCodeConfigManager() {
 
   const reloadConfigMutation = useMutation({
     mutationFn: async () => {
-      return await settingsApi.reloadOpenCodeConfig()
+      return await settingsApi.reloadCoStrictConfig()
     },
     onSuccess: () => {
       invalidateConfigCaches(queryClient)
@@ -95,33 +95,33 @@ export function OpenCodeConfigManager() {
 
   const restartServerMutation = useMutation({
     mutationFn: async () => {
-      return await settingsApi.restartOpenCodeServer()
+      return await settingsApi.restartCoStrictServer()
     },
     onSuccess: () => {
       invalidateConfigCaches(queryClient)
     },
   })
 
-  const upgradeOpenCodeMutation = useMutation({
+  const upgradeCoStrictMutation = useMutation({
     mutationFn: async () => {
-      return await settingsApi.upgradeOpenCode()
+      return await settingsApi.upgradeCoStrict()
     },
     onSuccess: (data) => {
       if (data.upgraded && data.newVersion) {
         queryClient.setQueryData(['health'], (old: Record<string, unknown> | undefined) => {
           if (!old) return old
-          return { ...old, opencodeVersion: data.newVersion }
+          return { ...old, costrictVersion: data.newVersion }
         })
       }
       invalidateConfigCaches(queryClient)
       if (data.upgraded) {
-        showToast.success(`Upgraded to v${data.newVersion} and server restarted`, { id: 'upgrade-opencode' })
+        showToast.success(`Upgraded to v${data.newVersion} and server restarted`, { id: 'upgrade-costrict' })
       } else {
-        showToast.success('OpenCode is already up to date', { id: 'upgrade-opencode' })
+        showToast.success('CoStrict is already up to date', { id: 'upgrade-costrict' })
       }
     },
     onError: (error) => {
-      const defaultMessage = 'Failed to upgrade OpenCode'
+      const defaultMessage = 'Failed to upgrade CoStrict'
       
       if (error && typeof error === 'object' && 'response' in error) {
         const response = (error as { response?: { data?: { recovered?: boolean; recoveryMessage?: string; newVersion?: string } } }).response
@@ -130,14 +130,14 @@ export function OpenCodeConfigManager() {
         if (data?.recovered && data.newVersion) {
           queryClient.setQueryData(['health'], (old: Record<string, unknown> | undefined) => {
             if (!old) return old
-            return { ...old, opencodeVersion: data.newVersion }
+            return { ...old, costrictVersion: data.newVersion }
           })
-          showToast.success(`Upgrade failed but server recovered at v${data.newVersion}`, { id: 'upgrade-opencode' })
+          showToast.success(`Upgrade failed but server recovered at v${data.newVersion}`, { id: 'upgrade-costrict' })
         } else {
-          showToast.error(data?.recoveryMessage || defaultMessage, { id: 'upgrade-opencode' })
+          showToast.error(data?.recoveryMessage || defaultMessage, { id: 'upgrade-costrict' })
         }
       } else {
-        showToast.error(defaultMessage, { id: 'upgrade-opencode' })
+        showToast.error(defaultMessage, { id: 'upgrade-costrict' })
       }
       invalidateConfigCaches(queryClient)
     },
@@ -152,13 +152,13 @@ export function OpenCodeConfigManager() {
   }
 
   const getRestartErrorMessage = (error: unknown): string => {
-    return getApiErrorMessage(error, 'Failed to restart OpenCode server')
+    return getApiErrorMessage(error, 'Failed to restart CoStrict server')
   }
 
   const fetchConfigs = async () => {
     try {
       setIsLoading(true)
-      const data = await settingsApi.getOpenCodeConfigs()
+      const data = await settingsApi.getCoStrictConfigs()
       setConfigs(data.configs)
     } catch (error) {
       console.error('Failed to fetch configs:', error)
@@ -172,7 +172,7 @@ export function OpenCodeConfigManager() {
       setIsUpdating(true)
       const previousContent = configs.find(c => c.name === configName)?.content
 
-      await settingsApi.updateOpenCodeConfig(configName, { content: newContent })
+      await settingsApi.updateCoStrictConfig(configName, { content: newContent })
 
       setConfigs(prev => prev.map(config =>
         config.name === configName
@@ -230,7 +230,7 @@ export function OpenCodeConfigManager() {
         throw new Error(`Invalid fields found: ${foundForbidden.join(', ')}. These fields are managed automatically.`)
       }
 
-      await settingsApi.createOpenCodeConfig({
+      await settingsApi.createCoStrictConfig({
         name: name.trim(),
         content: rawContent,
         isDefault,
@@ -264,10 +264,10 @@ export function OpenCodeConfigManager() {
 
   
 
-  const deleteConfig = async (config: OpenCodeConfig) => {
+  const deleteConfig = async (config: CoStrictConfig) => {
     try {
       setIsUpdating(true)
-      await settingsApi.deleteOpenCodeConfig(config.name)
+      await settingsApi.deleteCoStrictConfig(config.name)
       setDeleteConfirmConfig(null)
       if (selectedConfig?.id === config.id) {
         setSelectedConfig(null)
@@ -281,11 +281,11 @@ export function OpenCodeConfigManager() {
     }
   }
 
-  const setDefaultConfig = async (config: OpenCodeConfig) => {
+  const setDefaultConfig = async (config: CoStrictConfig) => {
     showToast.loading('Setting default config and reloading server...', { id: 'set-default' })
     try {
       setIsUpdating(true)
-      await settingsApi.setDefaultOpenCodeConfig(config.name)
+      await settingsApi.setDefaultCoStrictConfig(config.name)
       await fetchConfigs()
       await reloadConfigMutation.mutateAsync()
       showToast.success('Default config updated and server reloaded', { id: 'set-default' })
@@ -299,7 +299,7 @@ export function OpenCodeConfigManager() {
 
   
 
-  const downloadConfig = (config: OpenCodeConfig) => {
+  const downloadConfig = (config: CoStrictConfig) => {
     const content = config.rawContent || JSON.stringify(config.content, null, 2)
     const extension = config.rawContent && hasJsoncComments(config.rawContent) ? 'jsonc' : 'json'
     const blob = new Blob([content], { type: 'application/json' })
@@ -313,7 +313,7 @@ export function OpenCodeConfigManager() {
 
   
 
-  const startEdit = (config: OpenCodeConfig) => {
+  const startEdit = (config: CoStrictConfig) => {
     setEditingConfig(config)
     setIsEditDialogOpen(true)
   }
@@ -326,7 +326,7 @@ export function OpenCodeConfigManager() {
     )
   }
 
-  const isUnhealthy = health?.opencode !== 'healthy'
+  const isUnhealthy = health?.costrict !== 'healthy'
 
   return (
     <div className="space-y-6 overflow-y-auto">
@@ -344,14 +344,14 @@ export function OpenCodeConfigManager() {
                     {health.error}
                   </p>
                 )}
-                {health.opencodeVersion && (
+                {health.costrictVersion && (
                   <p className="text-xs text-muted-foreground">
-                    OpenCode v{health.opencodeVersion}
+                    CoStrict v{health.costrictVersion}
                   </p>
                 )}
-                {health.opencodeManagerVersion && (
+                {health.costrictManagerVersion && (
                   <p className="text-xs text-muted-foreground">
-                    Manager v{health.opencodeManagerVersion}
+                    Manager v{health.costrictManagerVersion}
                   </p>
                 )}
               </div>
@@ -360,21 +360,21 @@ export function OpenCodeConfigManager() {
                   variant="outline"
                   size="sm"
                   onClick={async () => {
-                    showToast.loading('Upgrading OpenCode...', { id: 'upgrade-opencode' })
+                    showToast.loading('Upgrading CoStrict...', { id: 'upgrade-costrict' })
                     try {
-                      await upgradeOpenCodeMutation.mutateAsync()
+                      await upgradeCoStrictMutation.mutateAsync()
                     } catch (error) {
                       const errorMessage = error && typeof error === 'object' && 'response' in error
                         ? ((error as { response?: { data?: { details?: string; error?: string } } }).response?.data?.details
                            || (error as { response?: { data?: { details?: string; error?: string } } }).response?.data?.error
-                           || 'Failed to upgrade OpenCode')
-                        : 'Failed to upgrade OpenCode'
-                      showToast.error(errorMessage, { id: 'upgrade-opencode' })
+                           || 'Failed to upgrade CoStrict')
+                        : 'Failed to upgrade CoStrict'
+                      showToast.error(errorMessage, { id: 'upgrade-costrict' })
                     }
                   }}
-                  disabled={upgradeOpenCodeMutation.isPending}
+                  disabled={upgradeCoStrictMutation.isPending}
                 >
-                  {upgradeOpenCodeMutation.isPending ? (
+                  {upgradeCoStrictMutation.isPending ? (
                     <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 animate-spin" />
                   ) : (
                     <ArrowUpCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
@@ -385,7 +385,7 @@ export function OpenCodeConfigManager() {
                   variant="outline"
                   size="sm"
                   onClick={async () => {
-                    showToast.loading('Restarting OpenCode server...', { id: 'manual-restart' })
+                    showToast.loading('Restarting CoStrict server...', { id: 'manual-restart' })
                     try {
                       await restartServerMutation.mutateAsync()
                       showToast.success('Server restarted successfully', { id: 'manual-restart' })
@@ -424,13 +424,13 @@ export function OpenCodeConfigManager() {
        )}
 
         <MemoryPluginConfig 
-           memoryPluginEnabled={configs.find(c => c.isDefault)?.content?.plugin?.includes('@opencode-manager/memory') ?? false}
+           memoryPluginEnabled={configs.find(c => c.isDefault)?.content?.plugin?.includes('@costrict-manager/memory') ?? false}
            onToggle={async (enabled) => {
              const defaultConfig = configs.find(c => c.isDefault)
              if (!defaultConfig) return
              
              const currentPlugins = defaultConfig.content?.plugin ?? []
-             const memoryPlugin = '@opencode-manager/memory'
+             const memoryPlugin = '@costrict-manager/memory'
              const newPlugins = enabled
                ? currentPlugins.includes(memoryPlugin)
                  ? currentPlugins
@@ -461,7 +461,7 @@ export function OpenCodeConfigManager() {
       {configs.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">No OpenCode configurations found. Create your first config to get started.</p>
+            <p className="text-muted-foreground">No CoStrict configurations found. Create your first config to get started.</p>
           </CardContent>
         </Card>
       ) : (
@@ -530,7 +530,7 @@ export function OpenCodeConfigManager() {
       )}
 
       {/* Edit Dialog */}
-      <OpenCodeConfigEditor
+      <ConfigEditor
         config={editingConfig}
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
@@ -538,7 +538,7 @@ export function OpenCodeConfigManager() {
           if (!editingConfig) return
           showToast.loading('Saving configuration...', { id: 'edit-config' })
           try {
-            await settingsApi.updateOpenCodeConfig(editingConfig.name, { content: rawContent })
+            await settingsApi.updateCoStrictConfig(editingConfig.name, { content: rawContent })
             await fetchConfigs()
             const successMsg = editingConfig.isDefault
               ? 'Configuration saved and server reloaded'
@@ -583,7 +583,7 @@ export function OpenCodeConfigManager() {
 
           <h3 className="text-lg font-semibold mb-4">Configure Commands, Agents & MCP Servers</h3>
           <p className="text-sm text-muted-foreground mb-6">
-            Add custom commands, agents, and MCP servers to your OpenCode configurations. Select a configuration below to edit its settings.
+            Add custom commands, agents, and MCP servers to your CoStrict configurations. Select a configuration below to edit its settings.
           </p>
           
           {configs.length > 0 && (

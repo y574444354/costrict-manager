@@ -50,10 +50,10 @@ export const ENV = {
     NODE_ENV: getEnvString('NODE_ENV', 'development'),
   },
 
-  OPENCODE: {
-    PORT: getEnvNumber('OPENCODE_SERVER_PORT', DEFAULTS.OPENCODE.PORT),
-    HOST: getEnvString('OPENCODE_HOST', DEFAULTS.OPENCODE.HOST),
-    API_URL: process.env.OPENCODE_MANAGER_API_URL ?? `http://127.0.0.1:${DEFAULTS.SERVER.PORT}`,
+  COSTRICT: {
+    PORT: getEnvNumber('COSTRICT_SERVER_PORT', DEFAULTS.COSTRICT.PORT),
+    HOST: getEnvString('COSTRICT_HOST', DEFAULTS.COSTRICT.HOST),
+    API_URL: process.env.COSTRICT_MANAGER_API_URL ?? `http://127.0.0.1:${DEFAULTS.SERVER.PORT}`,
   },
 
   DATABASE: {
@@ -104,7 +104,7 @@ export const ENV = {
     DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
     PASSKEY_RP_ID: getEnvString('PASSKEY_RP_ID', 'localhost'),
-    PASSKEY_RP_NAME: getEnvString('PASSKEY_RP_NAME', 'OpenCode Manager'),
+    PASSKEY_RP_NAME: getEnvString('PASSKEY_RP_NAME', 'CoStrict Manager'),
     PASSKEY_ORIGIN: getEnvString('PASSKEY_ORIGIN', 'http://localhost:5003'),
   },
 
@@ -118,9 +118,9 @@ export const ENV = {
 export const getWorkspacePath = () => ENV.WORKSPACE.BASE_PATH
 export const getReposPath = () => path.join(ENV.WORKSPACE.BASE_PATH, ENV.WORKSPACE.REPOS_DIR)
 export const getConfigPath = () => path.join(ENV.WORKSPACE.BASE_PATH, ENV.WORKSPACE.CONFIG_DIR)
-export const getOpenCodeConfigFilePath = () => path.join(ENV.WORKSPACE.BASE_PATH, ENV.WORKSPACE.CONFIG_DIR, 'opencode.json')
+export const getCoStrictConfigFilePath = () => path.join(ENV.WORKSPACE.BASE_PATH, ENV.WORKSPACE.CONFIG_DIR, 'costrict.json')
 export const getPluginSourcePath = () => {
-  const envPath = process.env.OPENCODE_PLUGIN_PATH
+  const envPath = process.env.COSTRICT_PLUGIN_PATH
   if (envPath) return path.resolve(envPath)
   return path.resolve('packages/memory/src/index.ts')
 }
@@ -149,7 +149,7 @@ export const getApiUrl = (port: number = ENV.SERVER.PORT): string => {
 }
 
 export const SERVER_CONFIG = ENV.SERVER
-export const OPENCODE_CONFIG = ENV.OPENCODE
+export const COSTRICT_CONFIG = ENV.COSTRICT
 export const FILE_LIMITS = ENV.FILE_LIMITS
 export const TIMEOUTS = ENV.TIMEOUTS
 export const WORKSPACE = ENV.WORKSPACE

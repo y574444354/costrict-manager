@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { settingsApi } from '@/api/settings'
 import * as reposApi from '@/api/repos'
-import type { OpenCodeConfig } from '@/api/types/settings'
+import type { CoStrictConfig } from '@/api/types/settings'
 
 interface SwitchConfigDialogProps {
   open: boolean
@@ -22,7 +22,7 @@ export function SwitchConfigDialog({
   currentConfigName,
   onConfigSwitched,
 }: SwitchConfigDialogProps) {
-  const [configs, setConfigs] = useState<OpenCodeConfig[]>([])
+  const [configs, setConfigs] = useState<CoStrictConfig[]>([])
   const [selectedConfig, setSelectedConfig] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [switching, setSwitching] = useState(false)
@@ -35,7 +35,7 @@ export function SwitchConfigDialog({
       try {
         setLoading(true)
         setError(null)
-        const response = await settingsApi.getOpenCodeConfigs()
+        const response = await settingsApi.getCoStrictConfigs()
         setConfigs(response.configs || [])
         setSelectedConfig(currentConfigName || '')
       } catch (err) {
@@ -78,7 +78,7 @@ export function SwitchConfigDialog({
         <DialogHeader>
           <DialogTitle>Switch Config</DialogTitle>
           <DialogDescription>
-            Select a different OpenCode configuration for this repository
+            Select a different CoStrict configuration for this repository
           </DialogDescription>
         </DialogHeader>
 

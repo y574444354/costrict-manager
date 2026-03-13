@@ -14,20 +14,20 @@ const readFile = fs.readFile as any
 const writeFile = fs.writeFile as any
 const mkdirSpy = fs.mkdir as any
 
-vi.mock('@opencode-manager/shared/config/env', () => ({
+vi.mock('@costrict-manager/shared/config/env', () => ({
   getAuthPath: () => '/test/auth.json',
   ENV: {
     WORKSPACE: {
       BASE_PATH: '/test/workspace',
       REPOS_DIR: 'repos',
-      CONFIG_DIR: '.config/opencode',
-      AUTH_FILE: '.opencode/state/opencode/auth.json',
+      CONFIG_DIR: '.config/costrict',
+      AUTH_FILE: '.costrict/state/costrict/auth.json',
     },
   },
   getWorkspacePath: () => '/test/workspace',
   getReposPath: () => '/test/repos',
   getConfigPath: () => '/test/config',
-  getOpenCodeConfigFilePath: () => '/test/config/opencode.json',
+  getCoStrictConfigFilePath: () => '/test/config/costrict.json',
   getAgentsMdPath: () => '/test/config/AGENTS.md',
   getDatabasePath: () => '/test/database.db',
 }))

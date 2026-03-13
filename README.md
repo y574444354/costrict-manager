@@ -1,36 +1,21 @@
 <p align="center">
-    <img src=".github/social-preview.png" alt="OpenCode Manager" width="600" style="border: none" />
+    <img src=".github/social-preview.png" alt="CoStrict Manager" width="600" style="border: none" />
 </p>
 
 <p align="center">
-    <strong>Mobile-first web interface for <a href="https://opencode.ai">OpenCode</a> AI agents. Manage, control, and code from any device.</strong>
+    <strong>Mobile-first web interface for <a href="https://costrict.ai">CoStrict</a> AI agents. Manage, control, and code from any device.</strong>
 </p>
 
 <p align="center">
-    <a href="https://github.com/chriswritescode-dev/opencode-manager/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/chriswritescode-dev/opencode-manager?label=License" alt="License" />
-    </a>
-    <a href="https://github.com/chriswritescode-dev/opencode-manager/stargazers">
-        <img src="https://img.shields.io/github/stars/chriswritescode-dev/opencode-manager?label=Stars" alt="Stars" />
-    </a>
-    <a href="https://github.com/chriswritescode-dev/opencode-manager/releases/latest">
-        <img src="https://img.shields.io/github/v/tag/chriswritescode-dev/opencode-manager" alt="Latest Release" />
-    </a>
-    <a href="https://github.com/chriswritescode-dev/opencode-manager/pulls">
-        <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" />
-    </a>
-</p>
-
-<p align="center">
-  <img src="docs/images/ocmgr-demo.gif" alt="OpenCode Manager Demo" height="400" />
+  <img src="docs/images/ocmgr-demo.gif" alt="CoStrict Manager Demo" height="400" />
   <img src="https://github.com/user-attachments/assets/c8087451-8b97-4178-952b-b8149f5c258a" alt="Git Commit Demo" height="400" />
 </p>
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/chriswritescode-dev/opencode-manager.git
-cd opencode-manager
+git clone https://github.com/y574444354/costrict-manager.git
+cd costrict-manager
 cp .env.example .env
 docker-compose up -d
 # Open http://localhost:5003
@@ -38,7 +23,7 @@ docker-compose up -d
 
 On first launch, you'll be prompted to create an admin account. That's it!
 
-For local development setup, see the [Development Guide](https://chriswritescode-dev.github.io/opencode-manager/development/setup/).
+For local development setup, see the [Development Guide](https://chriswritescode-dev.github.io/costrict-manager/development/setup/).
 
 ## Screenshots
 
@@ -75,16 +60,6 @@ ADMIN_PASSWORD=your-secure-password
 AUTH_TRUSTED_ORIGINS=http://localhost:5003,https://yourl33tdomain.com
 AUTH_SECURE_COOKIES=false  # Set to true when using HTTPS
 ```
-
-For OAuth, Passkeys, Push Notifications (VAPID), and advanced configuration, see the [Configuration Guide](https://chriswritescode-dev.github.io/opencode-manager/configuration/environment/).
-
-## Documentation
-
-- [Getting Started](https://chriswritescode-dev.github.io/opencode-manager/getting-started/installation/) — Installation and first-run setup
-- [Features](https://chriswritescode-dev.github.io/opencode-manager/features/overview/) — Deep dive on all features
-- [Configuration](https://chriswritescode-dev.github.io/opencode-manager/configuration/environment/) — Environment variables and advanced setup
-- [Troubleshooting](https://chriswritescode-dev.github.io/opencode-manager/troubleshooting/) — Common issues and solutions
-- [Development](https://chriswritescode-dev.github.io/opencode-manager/development/setup/) — Contributing and local development
 
 ## License
 

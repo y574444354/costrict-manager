@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { useOpenCodeClient } from './useOpenCode'
+import { useCoStrictClient } from './useClient'
 
 export function useLSPStatus(opcodeUrl: string | null | undefined, directory?: string) {
-  const client = useOpenCodeClient(opcodeUrl, directory)
+  const client = useCoStrictClient(opcodeUrl, directory)
 
   return useQuery({
-    queryKey: ['opencode', 'lsp', opcodeUrl, directory],
+    queryKey: ['costrict', 'lsp', opcodeUrl, directory],
     queryFn: () => client!.getLSPStatus(),
     enabled: !!client,
     refetchInterval: 30000,

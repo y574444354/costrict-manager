@@ -14,8 +14,8 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { ContextUsageIndicator } from "@/components/session/ContextUsageIndicator";
-import { useSession, useAbortSession, useUpdateSession, useMessages, useTitleGenerating, useCreateSession } from "@/hooks/useOpenCode";
-import { OPENCODE_API_ENDPOINT } from "@/config";
+import { useSession, useAbortSession, useUpdateSession, useMessages, useTitleGenerating, useCreateSession } from "@/hooks/useClient";
+import { COSTRICT_API_ENDPOINT } from "@/config";
 import { useSSE } from "@/hooks/useSSE";
 import { useUIState } from "@/stores/uiStateStore";
 import { useSettings } from "@/hooks/useSettings";
@@ -36,7 +36,7 @@ import { RepoMcpDialog } from "@/components/repo/RepoMcpDialog";
 import { ResetPermissionsDialog } from "@/components/repo/ResetPermissionsDialog";
 import { LspStatusButton } from "@/components/repo/LspStatusButton";
 import { RepoLspDialog } from "@/components/repo/RepoLspDialog";
-import { createOpenCodeClient } from "@/api/opencode";
+import { createCoStrictClient } from "@/api/client";
 import { useSessionStatus, useSessionStatusForSession } from "@/stores/sessionStatusStore";
 import { useQuestions } from "@/contexts/EventContext";
 import { QuestionPrompt } from "@/components/session/QuestionPrompt";
@@ -92,13 +92,13 @@ export function SessionDetail() {
     enabled: !!repoId,
   });
 
-  const opcodeUrl = OPENCODE_API_ENDPOINT;
+  const coststrictUrl = COSTRICT_API_ENDPOINT;
   
   const repoDirectory = repo?.fullPath;
 
-  const { data: rawMessages, isLoading: messagesLoading } = useMessages(opcodeUrl, sessionId, repoDirectory);
+  const { data: rawMessages, isLoading: messagesLoading } = useMessages(coststrictUrl, sessionId, repoDirectory);
   const { data: session, isLoading: sessionLoading } = useSession(
-    opcodeUrl,
+    coststrictUrl,
     sessionId,
     repoDirectory,
   );
@@ -122,13 +122,13 @@ export function SessionDetail() {
     onScrollStateChange: setShowScrollButton
   });
 
-  const { isConnected, isReconnecting } = useSSE(opcodeUrl, repoDirectory, sessionId);
-  const abortSession = useAbortSession(opcodeUrl, repoDirectory, sessionId);
-  const updateSession = useUpdateSession(opcodeUrl, repoDirectory);
-  const createSession = useCreateSession(opcodeUrl, repoDirectory);
+  const { isConnected, isReconnecting } = useSSE(coststrictUrl, repoDirectory, sessionId);
+  const abortSession = useAbortSession(coststrictUrl, repoDirectory, sessionId);
+  const updateSession = useUpdateSession(coststrictUrl, repoDirectory);
+  const createSession = useCreateSession(coststrictUrl, repoDirectory);
   const isTitleGenerating = useTitleGenerating(sessionId);
   const { open: openSettings } = useSettingsDialog();
-  const { model, modelString } = useModelSelection(opcodeUrl, repoDirectory);
+  const { model, modelString } = useModelSelection(coststrictUrl, repoDirectory);
   const isEditingMessage = useUIState((state) => state.isEditingMessage);
   const { isPlaying, stop } = useTTS();
   const setSessionStatus = useSessionStatus((state) => state.setStatus);
@@ -156,7 +156,7 @@ export function SessionDetail() {
   }, [createSession, navigate, repoId]);
 
   const handleCompact = useCallback(async () => {
-    if (!opcodeUrl || !sessionId) return;
+    if (!coststrictUrl || !sessionId) return;
     if (!model?.providerID || !model?.modelID) {
       showToast.error('No model selected. Please select a provider and model first.');
       return;
@@ -166,38 +166,38 @@ export function SessionDetail() {
     setSessionStatus(sessionId, { type: 'compact' });
 
     try {
-      const client = createOpenCodeClient(opcodeUrl, repoDirectory);
+      const client = createCoStrictClient(coststrictUrl, repoDirectory);
       await client.summarizeSession(sessionId, model.providerID, model.modelID);
     } catch (error) {
       showToast.error(`Compact failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setSessionStatus(sessionId, { type: 'idle' });
     }
-  }, [opcodeUrl, sessionId, model, repoDirectory, setSessionStatus]);
+  }, [coststrictUrl, sessionId, model, repoDirectory, setSessionStatus]);
 
   const handleUndo = useCallback(async () => {
-    if (!opcodeUrl || !sessionId) return;
+    if (!coststrictUrl || !sessionId) return;
     try {
-      const client = createOpenCodeClient(opcodeUrl, repoDirectory);
+      const client = createCoStrictClient(coststrictUrl, repoDirectory);
       await client.sendCommand(sessionId, { command: 'undo', arguments: '' });
     } catch (error) {
       showToast.error(`Undo failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [opcodeUrl, sessionId, repoDirectory]);
+  }, [coststrictUrl, sessionId, repoDirectory]);
 
   const handleRedo = useCallback(async () => {
-    if (!opcodeUrl || !sessionId) return;
+    if (!coststrictUrl || !sessionId) return;
     try {
-      const client = createOpenCodeClient(opcodeUrl, repoDirectory);
+      const client = createCoStrictClient(coststrictUrl, repoDirectory);
       await client.sendCommand(sessionId, { command: 'redo', arguments: '' });
     } catch (error) {
       showToast.error(`Redo failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [opcodeUrl, sessionId, repoDirectory]);
+  }, [coststrictUrl, sessionId, repoDirectory]);
 
   const handleFork = useCallback(async () => {
-    if (!opcodeUrl || !sessionId) return;
+    if (!coststrictUrl || !sessionId) return;
     try {
-      const client = createOpenCodeClient(opcodeUrl, repoDirectory);
+      const client = createCoStrictClient(coststrictUrl, repoDirectory);
       const forkedSession = await client.forkSession(sessionId);
       if (forkedSession?.id) {
         navigate(`/repos/${repoId}/sessions/${forkedSession.id}`);
@@ -206,7 +206,7 @@ export function SessionDetail() {
     } catch (error) {
       showToast.error(`Fork failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [opcodeUrl, sessionId, repoDirectory, navigate, repoId]);
+  }, [coststrictUrl, sessionId, repoDirectory, navigate, repoId]);
 
   const handleCloseSession = useCallback(() => {
     navigate(`/repos/${repoId}`);
@@ -364,7 +364,7 @@ export function SessionDetail() {
             <PendingActionsGroup />
           </div>
           <ContextUsageIndicator
-            opcodeUrl={opcodeUrl}
+            coststrictUrl={coststrictUrl}
             sessionID={sessionId}
             directory={repoDirectory}
             isConnected={isConnected}
@@ -380,7 +380,7 @@ export function SessionDetail() {
             <span className="hidden sm:inline">Files</span>
           </Button>
           <LspStatusButton
-            opcodeUrl={opcodeUrl}
+            coststrictUrl={coststrictUrl}
             directory={repoDirectory}
             onClick={() => setLspDialogOpen(true)}
           />
@@ -458,9 +458,9 @@ export function SessionDetail() {
         <div key={sessionId} ref={messageContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden pb-28 overscroll-contain [mask-image:linear-gradient(to_bottom,transparent,black_16px,black)]">
           {repoLoading || sessionLoading || messagesLoading ? (
             <MessageSkeleton />
-          ) : opcodeUrl && repoDirectory ? (
+          ) : coststrictUrl && repoDirectory ? (
             <MessageThread 
-              opcodeUrl={opcodeUrl} 
+              coststrictUrl={coststrictUrl} 
               sessionID={sessionId} 
               directory={repoDirectory}
               messages={messages}
@@ -471,7 +471,7 @@ export function SessionDetail() {
             />
           ) : null}
         </div>
-        {opcodeUrl && repoDirectory && !isEditingMessage && (
+        {coststrictUrl && repoDirectory && !isEditingMessage && (
           <div
             className="absolute left-0 right-0 flex justify-center"
             style={{ bottom: inputBottomOffset }}
@@ -522,7 +522,7 @@ export function SessionDetail() {
               )}
               <PromptInput
                 ref={promptInputRef}
-                opcodeUrl={opcodeUrl}
+                coststrictUrl={coststrictUrl}
                 directory={repoDirectory}
                 sessionID={sessionId}
                 disabled={!isConnected}
@@ -544,7 +544,7 @@ export function SessionDetail() {
       <ModelSelectDialog
         open={modelDialogOpen}
         onOpenChange={setModelDialogOpen}
-        opcodeUrl={opcodeUrl}
+        coststrictUrl={coststrictUrl}
         directory={repoDirectory}
       />
 
@@ -553,9 +553,9 @@ export function SessionDetail() {
         <DialogContent className="max-w-4xl max-h-[80vh]">
           <DialogTitle>Sessions</DialogTitle>
           <div className="overflow-y-auto max-h-[60vh] mt-4">
-            {opcodeUrl && (
+            {coststrictUrl && (
               <SessionList
-                opcodeUrl={opcodeUrl}
+                coststrictUrl={coststrictUrl}
                 directory={repoDirectory}
                 activeSessionID={sessionId || undefined}
                 onSelectSession={(sessionID) => {
@@ -580,7 +580,7 @@ export function SessionDetail() {
       <RepoLspDialog
         open={lspDialogOpen}
         onOpenChange={setLspDialogOpen}
-        opcodeUrl={opcodeUrl}
+        coststrictUrl={coststrictUrl}
         directory={repoDirectory}
       />
 

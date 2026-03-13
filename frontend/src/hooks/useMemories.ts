@@ -7,7 +7,7 @@ import {
   deleteMemory,
   getProjectSummary,
 } from '@/api/memory'
-import type { CreateMemoryRequest, UpdateMemoryRequest } from '@opencode-manager/shared/types'
+import type { CreateMemoryRequest, UpdateMemoryRequest } from '@costrict-manager/shared/types'
 import { showToast } from '@/lib/toast'
 
 export function useMemories(filters?: {

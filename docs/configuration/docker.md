@@ -5,8 +5,8 @@ Advanced Docker setup and configuration options.
 ## Basic Setup
 
 ```bash
-git clone https://github.com/chriswritescode-dev/opencode-manager.git
-cd opencode-manager
+git clone https://github.com/chriswritescode-dev/costrict-manager.git
+cd costrict-manager
 
 # Copy and configure environment
 cp .env.example .env
@@ -35,9 +35,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: opencode-manager
+    container_name: costrict-manager
     ports:
-      - "5003:5003"      # OpenCode Manager
+      - "5003:5003"      # CoStrict Manager
       - "5100:5100"      # Dev server 1
       - "5101:5101"      # Dev server 2
       - "5102:5102"      # Dev server 3
@@ -47,7 +47,7 @@ services:
       - HOST=0.0.0.0
       - PORT=5003
       - OPENCODE_SERVER_PORT=5551
-      - DATABASE_PATH=/app/data/opencode.db
+      - DATABASE_PATH=/app/data/costrict.db
       - WORKSPACE_PATH=/workspace
       - AUTH_SECRET=${AUTH_SECRET}
       - AUTH_TRUSTED_ORIGINS=${AUTH_TRUSTED_ORIGINS:-http://localhost:5003}
@@ -58,15 +58,15 @@ services:
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
       # Passkeys (optional)
       - PASSKEY_RP_ID=${PASSKEY_RP_ID:-localhost}
-      - PASSKEY_RP_NAME=${PASSKEY_RP_NAME:-OpenCode Manager}
+      - PASSKEY_RP_NAME=${PASSKEY_RP_NAME:-CoStrict Manager}
       - PASSKEY_ORIGIN=${PASSKEY_ORIGIN:-http://localhost:5003}
       # Push notifications (optional)
       - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
       - VAPID_SUBJECT=${VAPID_SUBJECT:-}
     volumes:
-      - opencode-workspace:/workspace
-      - opencode-data:/app/data
+      - costrict-workspace:/workspace
+      - costrict-data:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5003/api/health"]
@@ -76,9 +76,9 @@ services:
       start_period: 40s
 
 volumes:
-  opencode-workspace:
+  costrict-workspace:
     driver: local
-  opencode-data:
+  costrict-data:
     driver: local
 ```
 
@@ -113,8 +113,8 @@ VAPID_SUBJECT=mailto:you@example.com
 The container entrypoint (`scripts/docker-entrypoint.sh`) automatically:
 
 1. **Installs Bun** if not present
-2. **Installs OpenCode** if not present
-3. **Upgrades OpenCode** if below minimum version (1.0.137)
+2. **Installs CoStrict** if not present
+3. **Upgrades CoStrict** if below minimum version (1.0.137)
 4. **Validates AUTH_SECRET** is set (required for startup)
 5. **Validates memory plugin** installation
 
@@ -219,7 +219,7 @@ healthcheck:
 Check health status:
 
 ```bash
-docker inspect --format='{{.State.Health.Status}}' opencode-manager
+docker inspect --format='{{.State.Health.Status}}' costrict-manager
 ```
 
 ## Resource Limits
@@ -228,7 +228,7 @@ Limit container resources:
 
 ```yaml
 services:
-  opencode-manager:
+  costrict-manager:
     # ... other config
     deploy:
       resources:
@@ -248,7 +248,7 @@ Create an isolated network:
 
 ```yaml
 services:
-  opencode-manager:
+  costrict-manager:
     networks:
       - opencode-net
 
@@ -263,7 +263,7 @@ Use host networking (Linux only):
 
 ```yaml
 services:
-  opencode-manager:
+  costrict-manager:
     network_mode: host
 ```
 
@@ -308,21 +308,21 @@ docker-compose up -d
 
 ```bash
 # Access shell
-docker exec -it opencode-manager sh
+docker exec -it costrict-manager sh
 
 # View running processes
-docker exec opencode-manager ps aux
+docker exec costrict-manager ps aux
 
 # Check disk usage
-docker exec opencode-manager df -h
+docker exec costrict-manager df -h
 
 # View environment
-docker exec opencode-manager env
+docker exec costrict-manager env
 ```
 
 ## Global Agent Instructions
 
-The container creates a default `AGENTS.md` file at `/workspace/.config/opencode/AGENTS.md`.
+The container creates a default `AGENTS.md` file at `/workspace/.config/costrict/AGENTS.md`.
 
 ### Default Content
 
@@ -333,11 +333,11 @@ Instructions for AI agents working in the container:
 
 ### Editing
 
-**Via UI:** Settings > OpenCode > Global Agent Instructions
+**Via UI:** Settings > CoStrict > Global Agent Instructions
 
 **Via File:**
 ```bash
-docker exec -it opencode-manager vi /workspace/.config/opencode/AGENTS.md
+docker exec -it costrict-manager vi /workspace/.config/costrict/AGENTS.md
 ```
 
 ### Precedence

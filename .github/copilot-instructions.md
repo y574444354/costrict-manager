@@ -25,7 +25,7 @@
 
 - Backend: `import { Hono } from 'hono'`
 - Frontend: `import { Button } from '@/components/ui/button'`
-- Shared types: `import { ... } from '@opencode-manager/shared'`
+- Shared types: `import { ... } from '@costrict-manager/shared'`
 
 ### Architecture Patterns
 

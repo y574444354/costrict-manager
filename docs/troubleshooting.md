@@ -137,7 +137,7 @@ ADMIN_PASSWORD_RESET=true
 
 **Solutions:**
 
-1. Check OpenCode server is running:
+1. Check CoStrict server is running:
 ```bash
 docker exec opencode-manager ps aux | grep opencode
 ```

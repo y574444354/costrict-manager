@@ -13,7 +13,7 @@ export interface Repo {
   isWorktree?: boolean
 }
 
-import type { components } from './opencode-types'
+import type { components } from './openapi-types'
 
 export type Message = components['schemas']['Message']
 export type Part = components['schemas']['Part']

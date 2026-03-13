@@ -1,4 +1,4 @@
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 import { CheckCircle2, Circle } from 'lucide-react'
 
 export type Todo = components['schemas']['Todo']

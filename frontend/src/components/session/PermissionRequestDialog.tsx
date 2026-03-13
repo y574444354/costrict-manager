@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import type { PermissionRequest, PermissionResponse } from '@/api/types'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 import { cn } from '@/lib/utils'
 import { showToast } from '@/lib/toast'
 

@@ -6,21 +6,21 @@ Guide for setting up a local development environment.
 
 - [pnpm](https://pnpm.io/installation) - Package manager (required for workspaces)
 - [Bun](https://bun.sh) - Backend runtime
-- [OpenCode TUI](https://opencode.ai) - `npm install -g @opencode/tui`
+- [CoStrict TUI](https://costrict.ai) - `npm install -g @costrict/tui`
 
 ## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/chriswritescode-dev/opencode-manager.git
-cd opencode-manager
+git clone https://github.com/chriswritescode-dev/costrict-manager.git
+cd costrict-manager
 
 # Install dependencies
 pnpm install
 ```
 
 The `pnpm dev` command automatically runs `scripts/setup-dev.sh` first, which:
-- Checks prerequisites (pnpm, bun, git, OpenCode TUI)
+- Checks prerequisites (pnpm, bun, git, CoStrict TUI)
 - Creates required workspace directories
 - Copies `.env.example` to `.env` if missing
 
@@ -59,9 +59,9 @@ opencode-manager/
 │   │   ├── stores/       # Zustand stores
 │   │   └── contexts/     # React contexts
 │   └── public/           # Static assets
-├── shared/               # @opencode-manager/shared types and utilities
+├── shared/               # @costrict-manager/shared types and utilities
 ├── packages/memory/      # Memory plugin package
-├── workspace/            # Runtime workspace for OpenCode
+├── workspace/            # Runtime workspace for CoStrict
 ├── docs/                 # Documentation
 ├── scripts/              # Build and utility scripts
 ├── Dockerfile            # Docker image definition

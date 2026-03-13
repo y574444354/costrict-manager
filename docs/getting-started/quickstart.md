@@ -1,14 +1,14 @@
 # Quick Start
 
-Get up and running with OpenCode Manager in minutes.
+Get up and running with CoStrict Manager in minutes.
 
 ## 1. Start the Application
 
 === "Docker"
 
     ```bash
-    git clone https://github.com/chriswritescode-dev/opencode-manager.git
-    cd opencode-manager
+    git clone https://github.com/chriswritescode-dev/costrict-manager.git
+    cd costrict-manager
     cp .env.example .env
     echo "AUTH_SECRET=$(openssl rand -base64 32)" >> .env
     docker-compose up -d
@@ -19,8 +19,8 @@ Get up and running with OpenCode Manager in minutes.
 === "Local Development"
 
     ```bash
-    git clone https://github.com/chriswritescode-dev/opencode-manager.git
-    cd opencode-manager
+    git clone https://github.com/chriswritescode-dev/costrict-manager.git
+    cd costrict-manager
     pnpm install
     cp .env.example .env
     pnpm dev

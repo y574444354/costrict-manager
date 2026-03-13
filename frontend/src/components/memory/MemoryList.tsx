@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMemories, useDeleteMemory } from '@/hooks/useMemories'
 import { useDebounce } from '@/hooks/useDebounce'
-import type { Memory } from '@opencode-manager/shared/types'
+import type { Memory } from '@costrict-manager/shared/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'

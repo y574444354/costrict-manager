@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "OpenCode Manager",
-  "short_name": "OpenCode",
+  "name": "CoStrict Manager",
+  "short_name": "CoStrict",
   "description": "AI-powered coding assistant interface",
   "start_url": "/",
   "display": "standalone",

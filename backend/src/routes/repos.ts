@@ -6,11 +6,11 @@ import * as repoService from '../services/repo'
 import * as archiveService from '../services/archive'
 import { SettingsService } from '../services/settings'
 import { writeFileContent } from '../services/file-operations'
-import { opencodeServerManager } from '../services/opencode-single-server'
-import { proxyToOpenCodeWithDirectory } from '../services/proxy'
+import { costrictServerManager } from '../services/costrict-server'
+import { proxyToCoStrictWithDirectory } from '../services/proxy'
 import { logger } from '../utils/logger'
 import { getErrorMessage, getStatusCode } from '../utils/error-utils'
-import { getOpenCodeConfigFilePath, getReposPath } from '@opencode-manager/shared/config/env'
+import { getCoStrictConfigFilePath, getReposPath } from '@costrict-manager/shared/config/env'
 import { createRepoGitRoutes } from './repo-git'
 import type { GitAuthService } from '../services/git-auth'
 import path from 'path'
@@ -23,7 +23,7 @@ export function createRepoRoutes(database: Database, gitAuthService: GitAuthServ
   app.post('/', async (c) => {
     try {
       const body = await c.req.json()
-      const { repoUrl, localPath, branch, openCodeConfigName, useWorktree, skipSSHVerification, provider } = body
+      const { repoUrl, localPath, branch, coStrictConfigName, useWorktree, skipSSHVerification, provider } = body
 
       if (!repoUrl && !localPath) {
         return c.json({ error: 'Either repoUrl or localPath is required' }, 400)
@@ -50,15 +50,15 @@ export function createRepoRoutes(database: Database, gitAuthService: GitAuthServ
         )
       }
       
-      if (openCodeConfigName) {
+      if (coStrictConfigName) {
         const settingsService = new SettingsService(database)
-        const configContent = settingsService.getOpenCodeConfigContent(openCodeConfigName)
+        const configContent = settingsService.getCoStrictConfigContent(coStrictConfigName)
         
         if (configContent) {
-          const openCodeConfigPath = getOpenCodeConfigFilePath()
-          await writeFileContent(openCodeConfigPath, configContent)
-          db.updateRepoConfigName(database, repo.id, openCodeConfigName)
-          logger.info(`Applied config '${openCodeConfigName}' to: ${openCodeConfigPath}`)
+          const coStrictConfigPath = getCoStrictConfigFilePath()
+          await writeFileContent(coStrictConfigPath, configContent)
+          db.updateRepoConfigName(database, repo.id, coStrictConfigName)
+          logger.info(`Applied config '${coStrictConfigName}' to: ${coStrictConfigPath}`)
         }
       }
       
@@ -175,24 +175,24 @@ app.get('/', async (c) => {
       }
       
       const settingsService = new SettingsService(database)
-      const configContent = settingsService.getOpenCodeConfigContent(configName)
+      const configContent = settingsService.getCoStrictConfigContent(configName)
       
       if (!configContent) {
         return c.json({ error: `Config '${configName}' not found` }, 404)
       }
       
-      const openCodeConfigPath = getOpenCodeConfigFilePath()
+      const coStrictConfigPath = getCoStrictConfigFilePath()
       
-      await writeFileContent(openCodeConfigPath, configContent)
+      await writeFileContent(coStrictConfigPath, configContent)
       
       db.updateRepoConfigName(database, id, configName)
       
       logger.info(`Switched config for repo ${id} to '${configName}'`)
-      logger.info(`Updated OpenCode config: ${openCodeConfigPath}`)
+      logger.info(`Updated CoStrict config: ${coStrictConfigPath}`)
       
-      logger.info('Restarting OpenCode server due to workspace config change')
-      await opencodeServerManager.stop()
-      await opencodeServerManager.start()
+      logger.info('Restarting CoStrict server due to workspace config change')
+      await costrictServerManager.stop()
+      await costrictServerManager.start()
       
       const updatedRepo = db.getRepoById(database, id)
       return c.json(updatedRepo)
@@ -314,7 +314,7 @@ app.get('/', async (c) => {
         return c.json({ error: 'Repo not found' }, 404)
       }
       
-      const response = await proxyToOpenCodeWithDirectory(
+      const response = await proxyToCoStrictWithDirectory(
         '/instance/dispose',
         'POST',
         repo.fullPath

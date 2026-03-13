@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
-type Tab = 'account' | 'general' | 'notifications' | 'voice' | 'git' | 'shortcuts' | 'opencode' | 'providers' | 'menu'
+type Tab = 'account' | 'general' | 'notifications' | 'voice' | 'git' | 'shortcuts' | 'costrict' | 'providers' | 'menu'
 
 interface UseSettingsDialogReturn {
   isOpen: boolean

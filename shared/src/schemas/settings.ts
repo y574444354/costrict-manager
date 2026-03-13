@@ -102,7 +102,7 @@ export const GitIdentitySchema = z.object({
 export type GitIdentity = z.infer<typeof GitIdentitySchema>;
 
 export const DEFAULT_GIT_IDENTITY: GitIdentity = {
-  name: 'OpenCode Agent',
+  name: 'CoStrict Agent',
   email: '',
 };
 
@@ -181,7 +181,7 @@ export const UpdateSettingsRequestSchema = z.object({
   preferences: UserPreferencesSchema.partial(),
 });
 
-export const OpenCodeConfigSchema = z.object({
+export const CoStrictConfigSchema = z.object({
   $schema: z.string().optional(),
   theme: z.string().optional(),
   model: z.string().optional(),
@@ -200,29 +200,37 @@ export const OpenCodeConfigSchema = z.object({
   plugin: z.array(z.string()).optional(),
 }).strip();
 
-export type OpenCodeConfigContent = z.infer<typeof OpenCodeConfigSchema>;
+export type CoStrictConfigContent = z.infer<typeof CoStrictConfigSchema>;
 
-export const OpenCodeConfigMetadataSchema = z.object({
+export const CoStrictConfigMetadataSchema = z.object({
   id: z.number(),
   name: z.string().min(1).max(255),
-  content: OpenCodeConfigSchema,
+  content: CoStrictConfigSchema,
   isDefault: z.boolean(),
   createdAt: z.number(),
   updatedAt: z.number(),
 });
 
-export const CreateOpenCodeConfigRequestSchema = z.object({
+export const CreateCoStrictConfigRequestSchema = z.object({
   name: z.string().min(1).max(255),
-  content: z.union([OpenCodeConfigSchema, z.string()]),
+  content: z.union([CoStrictConfigSchema, z.string()]),
   isDefault: z.boolean().optional(),
 });
 
-export const UpdateOpenCodeConfigRequestSchema = z.object({
-  content: z.union([OpenCodeConfigSchema, z.string()]),
+export const UpdateCoStrictConfigRequestSchema = z.object({
+  content: z.union([CoStrictConfigSchema, z.string()]),
   isDefault: z.boolean().optional(),
 });
 
-export const OpenCodeConfigResponseSchema = z.object({
-  configs: z.array(OpenCodeConfigMetadataSchema),
-  defaultConfig: OpenCodeConfigMetadataSchema.nullable(),
+export const CoStrictConfigResponseSchema = z.object({
+  configs: z.array(CoStrictConfigMetadataSchema),
+  defaultConfig: CoStrictConfigMetadataSchema.nullable(),
 });
+
+// 向后兼容导出
+export const OpenCodeConfigSchema = CoStrictConfigSchema
+export type OpenCodeConfigContent = CoStrictConfigContent
+export const OpenCodeConfigMetadataSchema = CoStrictConfigMetadataSchema
+export const CreateOpenCodeConfigRequestSchema = CreateCoStrictConfigRequestSchema
+export const UpdateOpenCodeConfigRequestSchema = UpdateCoStrictConfigRequestSchema
+export const OpenCodeConfigResponseSchema = CoStrictConfigResponseSchema

@@ -1,6 +1,6 @@
 # Features Overview
 
-OpenCode Manager provides a comprehensive web interface for managing OpenCode AI agents.
+CoStrict Manager provides a comprehensive web interface for managing CoStrict AI agents.
 
 ## Core Features
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import type { components } from '@/api/opencode-types'
+import type { components } from '@/api/openapi-types'
 import { useSettings } from '@/hooks/useSettings'
 import { DiffStats } from './DiffStats'
 import { ContentDiffViewer } from './ContentDiffViewer'

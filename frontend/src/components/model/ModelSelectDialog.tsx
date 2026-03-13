@@ -22,7 +22,7 @@ import type { Model, ProviderWithModels } from "@/api/providers";
 interface ModelSelectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  opcodeUrl?: string | null;
+  coststrictUrl?: string | null;
   directory?: string;
 }
 
@@ -289,13 +289,13 @@ const ProviderSidebar = memo(function ProviderSidebar({
 export function ModelSelectDialog({
   open,
   onOpenChange,
-  opcodeUrl,
+  coststrictUrl,
   directory,
 }: ModelSelectDialogProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProvider, setSelectedProvider] = useState<string>("");
 
-  const { modelString, setModel, recentModels } = useModelSelection(opcodeUrl, directory);
+  const { modelString, setModel, recentModels } = useModelSelection(coststrictUrl, directory);
   const currentModel = modelString || "";
 
   const { data: allProviders = [], isLoading: loading } = useQuery({

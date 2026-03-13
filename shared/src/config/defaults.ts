@@ -10,20 +10,20 @@ export const DEFAULTS = {
     HOST: '0.0.0.0',
   },
 
-  OPENCODE: {
+  COSTRICT: {
     PORT: 5551,
     HOST: '127.0.0.1',
   },
 
   DATABASE: {
-    PATH: './data/opencode.db',
+    PATH: './data/costrict.db',
   },
 
   WORKSPACE: {
     BASE_PATH: './workspace',
     REPOS_DIR: 'repos',
-    CONFIG_DIR: '.config/opencode',
-    AUTH_FILE: '.opencode/state/opencode/auth.json',
+    CONFIG_DIR: '.config/costrict',
+    AUTH_FILE: '.costrict/state/costrict/auth.json',
   },
 
   TIMEOUTS: {

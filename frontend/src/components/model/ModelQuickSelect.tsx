@@ -12,10 +12,10 @@ import { useModelSelection } from '@/hooks/useModelSelection'
 import { useVariants } from '@/hooks/useVariants'
 import { formatModelName, getProviders } from '@/api/providers'
 import { useQuery } from '@tanstack/react-query'
-import { useOpenCodeClient } from '@/hooks/useOpenCode'
+import { useCoStrictClient } from '@/hooks/useClient'
 
 interface ModelQuickSelectProps {
-  opcodeUrl: string | null | undefined
+  coststrictUrl: string | null | undefined
   directory?: string
   onOpenFullDialog: () => void
   disabled?: boolean
@@ -23,18 +23,18 @@ interface ModelQuickSelectProps {
 }
 
 export function ModelQuickSelect({
-  opcodeUrl,
+  coststrictUrl,
   directory,
   onOpenFullDialog,
   disabled,
   children,
 }: ModelQuickSelectProps) {
-  const { modelString, recentModels, setModel } = useModelSelection(opcodeUrl, directory)
-  const { availableVariants, currentVariant, setVariant, clearVariant, hasVariants } = useVariants(opcodeUrl, directory)
-  const client = useOpenCodeClient(opcodeUrl, directory)
+  const { modelString, recentModels, setModel } = useModelSelection(coststrictUrl, directory)
+  const { availableVariants, currentVariant, setVariant, clearVariant, hasVariants } = useVariants(coststrictUrl, directory)
+  const client = useCoStrictClient(coststrictUrl, directory)
 
    const { data: providersData } = useQuery({
-     queryKey: ['opencode', 'providers', opcodeUrl, directory],
+     queryKey: ['costrict', 'providers', coststrictUrl, directory],
      queryFn: () => getProviders(),
      enabled: !!client,
      staleTime: 30000,

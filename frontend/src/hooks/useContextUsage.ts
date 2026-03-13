@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useMessages } from './useOpenCode'
+import { useMessages } from './useClient'
 import { useQuery } from '@tanstack/react-query'
 import { useModelSelection } from './useModelSelection'
 import { fetchWrapper } from '@/api/fetchWrapper'

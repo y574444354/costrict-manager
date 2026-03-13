@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { createOpenCodeClient } from '@/api/opencode'
-import type { components } from '@/api/opencode-types'
+import { createCoStrictClient } from '@/api/client'
+import type { components } from '@/api/openapi-types'
 
 type CommandType = components['schemas']['Command']
 
@@ -165,7 +165,7 @@ export function useCommands(opcodeUrl: string | null) {
       setError(null)
       
       try {
-        const client = createOpenCodeClient(opcodeUrl)
+        const client = createCoStrictClient(opcodeUrl)
         const commandList = await client.listCommands()
         const allCommands = [...BUILTIN_COMMANDS, ...commandList]
         const uniqueCommands = allCommands.filter((command, index, self) =>
