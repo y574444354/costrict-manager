@@ -29,16 +29,17 @@ fi
 
 echo "✅ Git is installed"
 
-# Check if CoStrict TUI is installed
-if ! opencode --version &> /dev/null; then
-  echo "❌ CoStrict TUI is not installed. Please install it with:"
-  echo "   npm install -g @costrict/tui"
-  echo "   or"
-  echo "   bun add -g @costrict/tui"
-  exit 1
-fi
-
-echo "✅ CoStrict TUI is installed"
+# Check if CoStrict TUI is installed (optional - commented out)
+# if ! opencode --version &> /dev/null; then
+#   echo "❌ CoStrict TUI is not installed. Please install it with:"
+#   echo "   npm install -g @costrict/tui"
+#   echo "   or"
+#   echo "   bun add -g @costrict/tui"
+#   exit 1
+# fi
+#
+# echo "✅ CoStrict TUI is installed"
+echo "⏭️  CoStrict TUI check skipped (optional)"
 
 # Create workspace directory if it doesn't exist
 WORKSPACE_PATH="./workspace"
