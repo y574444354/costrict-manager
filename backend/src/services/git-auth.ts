@@ -166,7 +166,7 @@ export class GitAuthService {
       env.VSCODE_GIT_FETCH_SILENT = 'true'
     }
 
-    if (this.askpassHandler) {
+    if (this.askpassHandler && process.platform !== 'win32') {
       Object.assign(env, this.askpassHandler.getEnv())
     }
 
