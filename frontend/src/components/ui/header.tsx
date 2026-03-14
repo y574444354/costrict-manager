@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { useMobile } from "@/hooks/useMobile";
 import { Loader2, X } from "lucide-react";
 import { usePermissions, useQuestions } from "@/contexts/EventContext";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
 interface HeaderProps {
   children: ReactNode;
@@ -240,6 +241,10 @@ function HeaderSettingsButton() {
   );
 }
 
+function HeaderLanguageButton() {
+  return <LanguageSwitcher />;
+}
+
 export const Header = Object.assign(HeaderBase, {
   BackButton: HeaderBackButton,
   Title: HeaderTitle,
@@ -247,6 +252,7 @@ export const Header = Object.assign(HeaderBase, {
   Actions: HeaderActions,
   MobileDropdown: HeaderMobileDropdown,
   Settings: HeaderSettingsButton,
+  Language: HeaderLanguageButton,
 }) as typeof HeaderBase & {
   BackButton: typeof HeaderBackButton;
   Title: typeof HeaderTitle;
@@ -254,4 +260,5 @@ export const Header = Object.assign(HeaderBase, {
   Actions: typeof HeaderActions;
   MobileDropdown: typeof HeaderMobileDropdown;
   Settings: typeof HeaderSettingsButton;
+  Language: typeof HeaderLanguageButton;
 };

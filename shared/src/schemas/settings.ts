@@ -27,7 +27,7 @@ export const STTConfigSchema = z.object({
   endpoint: z.string(),
   apiKey: z.string(),
   model: z.string(),
-  language: z.string().default('en-US'),
+  language: z.string().default('zh-CN'),
   availableModels: z.array(z.string()).optional(),
   lastModelsFetch: z.number().optional(),
 });
@@ -148,7 +148,7 @@ export const DEFAULT_STT_CONFIG: STTConfig = {
   endpoint: "https://api.openai.com",
   apiKey: "",
   model: '',
-  language: 'en-US',
+  language: 'zh-CN',
   availableModels: [],
   lastModelsFetch: 0,
 };
