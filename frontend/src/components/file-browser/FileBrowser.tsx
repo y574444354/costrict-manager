@@ -13,6 +13,7 @@ import type { FileInfo } from '@/types/files'
 import { API_BASE_URL } from '@/config'
 import { useMobile } from '@/hooks/useMobile'
 import { useFile } from '@/api/files'
+import { fetchWrapper } from '@/api/fetchWrapper'
 
 interface UploadItem {
   file: File
@@ -152,12 +153,7 @@ useEffect(() => {
     setError(null)
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/files/${path}`)
-      if (!response.ok) {
-        throw new Error(`Failed to load files: ${response.statusText}`)
-      }
-      
-      const data = await response.json()
+      const data = await fetchWrapper<FileInfo>(`${API_BASE_URL}/api/files/${path}`)
       setFiles(data)
       setCurrentPath(path)
       onDirectoryLoad?.({ workspaceRoot: data.workspaceRoot, currentPath: path })
@@ -177,12 +173,7 @@ useEffect(() => {
     // Fetch the full file content when selecting a file
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/files/${file.path}`)
-      if (!response.ok) {
-        throw new Error(`Failed to load file: ${response.statusText}`)
-      }
-      
-      const fullFileData = await response.json()
+      const fullFileData = await fetchWrapper<FileInfo>(`${API_BASE_URL}/api/files/${file.path}`)
       setSelectedFile(fullFileData)
       onFileSelect?.(fullFileData)
       
@@ -217,16 +208,10 @@ useEffect(() => {
     formData.append('relativePath', item.relativePath)
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/files/${currentPath}`, {
+      await fetchWrapper(`${API_BASE_URL}/api/files/${currentPath}`, {
         method: 'POST',
         body: formData,
       })
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        return errorData.error || `Upload failed: ${response.statusText}`
-      }
-      
       return null
     } catch (err) {
       return err instanceof Error ? err.message : 'Upload failed'
@@ -287,16 +272,11 @@ useEffect(() => {
 
   const handleCreateFile = useCallback(async (name: string, type: 'file' | 'folder') => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/files/${currentPath}/${name}`, {
+      await fetchWrapper(`${API_BASE_URL}/api/files/${currentPath}/${name}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type, content: type === 'file' ? '' : undefined }),
       })
-      
-      if (!response.ok) {
-        throw new Error(`Create failed: ${response.statusText}`)
-      }
-      
       await loadFiles(currentPath)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Create failed')
@@ -305,14 +285,9 @@ useEffect(() => {
 
   const handleDelete = useCallback(async (path: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/files/${path}`, {
+      await fetchWrapper(`${API_BASE_URL}/api/files/${path}`, {
         method: 'DELETE',
       })
-      
-      if (!response.ok) {
-        throw new Error(`Delete failed: ${response.statusText}`)
-      }
-      
       await loadFiles(currentPath)
       setSelectedFile(null)
     } catch (err) {
@@ -322,16 +297,11 @@ useEffect(() => {
 
   const handleRename = useCallback(async (oldPath: string, newPath: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/files/${oldPath}`, {
+      await fetchWrapper(`${API_BASE_URL}/api/files/${oldPath}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newPath }),
       })
-      
-      if (!response.ok) {
-        throw new Error(`Rename failed: ${response.statusText}`)
-      }
-      
       await loadFiles(currentPath)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Rename failed')
