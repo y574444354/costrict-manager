@@ -9,7 +9,7 @@
     "predev": "bash scripts/setup-dev.sh",
     "dev": "concurrently \"pnpm:dev:backend\" \"pnpm:dev:frontend\"",
     "dev:backend": "bun --watch backend/src/index.ts",
-    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:frontend": "sleep 5 && pnpm --filter frontend dev",
     "build": "pnpm run build:memory && pnpm run build:backend && pnpm run build:frontend",
     "build:memory": "pnpm --filter @costrict-manager/memory build",
     "build:backend": "pnpm --filter backend build",

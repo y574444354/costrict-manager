@@ -19,9 +19,21 @@
 
 ---
 
-## Overview
+## What is CoStrict?
 
-CoStrict Manager is a modern AI agent management platform with a mobile-first web interface. Manage, control, and code with AI agents from any device.
+[CoStrict](https://costrict.ai) is a terminal-based AI coding assistant that lets you collaborate with large language models to complete coding tasks without leaving the command line. It provides:
+
+- **Multiple launch modes** — TUI interactive interface (`cs`), non-interactive mode (`cs run "..."`) for scripts and automation, and web interface (`cs web`)
+- **Powerful built-in tools** — file read/write, shell execution, code search, network requests, and more
+- **Extensible via plugins** — custom tools and MCP servers for unlimited expansion
+- **Flexible configuration** — manage model selection, tool permissions, themes, and shortcuts via `costrict.json`
+- **IDE integration** — deep integration with Zed, JetBrains, Neovim via ACP protocol, and VS Code extension support
+
+## What is CoStrict Manager?
+
+CoStrict Manager is a modern AI agent management platform built specifically for CoStrict. It provides a mobile-first web interface so you can manage, control, and code with CoStrict AI agents from any device — including your phone or tablet.
+
+CoStrict Manager acts as a web UI layer on top of CoStrict CLI, connecting to the CoStrict server (port 5551) and exposing a full-featured management interface through a backend API (port 5003).
 
 ## Tech Stack
 
@@ -56,6 +68,7 @@ CoStrict Manager is a modern AI agent management platform with a mobile-first we
 - Node.js >= 18
 - pnpm >= 10.28.1
 - Bun >= 1.0
+- [CoStrict CLI](https://costrict.ai) installed and running
 
 ### Docker Deployment (Recommended)
 
@@ -242,10 +255,10 @@ Contributions are welcome! Please check [CONTRIBUTING.md](CONTRIBUTING.md) for d
 
 ---
 
-## 🔗 Links
+## Links
 
-- **Documentation**: [https://chriswritescode-dev.github.io/costrict-manager/](https://chriswritescode-dev.github.io/costrict-manager/)
 - **CoStrict Official**: [https://costrict.ai](https://costrict.ai)
+- **CoStrict Docs**: [https://docs.costrict.ai](https://docs.costrict.ai)
 - **Report Issues**: [GitHub Issues](https://github.com/y574444354/costrict-manager/issues)
 
 ---
