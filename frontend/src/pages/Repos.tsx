@@ -35,6 +35,7 @@ export function Repos() {
             <Plus className="w-4 h-4 mr-1" />
             Repo
           </Button>
+          <Header.Language />
           <Header.Settings />
         </Header.Actions>
       </Header>

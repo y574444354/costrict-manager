@@ -7,6 +7,10 @@ export function Workspace() {
       <Header>
         <Header.BackButton to="/repos" />
         <Header.Title>Workspace</Header.Title>
+        <Header.Actions>
+          <Header.Language />
+          <Header.Settings />
+        </Header.Actions>
       </Header>
 
       <div className="flex-1 overflow-hidden p-4">

@@ -78,6 +78,7 @@ export function Memories() {
           <Button onClick={() => setCreateOpen(true)} size="sm" className="sm:hidden">
             <Plus className="w-4 h-4" />
           </Button>
+          <Header.Language />
         </Header.Actions>
       </Header>
 

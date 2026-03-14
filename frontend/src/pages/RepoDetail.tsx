@@ -203,6 +203,7 @@ export function RepoDetail() {
             <ShieldOff className="w-4 h-4 mr-2" /> Reset Permissions
           </DropdownMenuItem>
         </Header.MobileDropdown>
+        <Header.Language />
         <Button
           onClick={() => handleCreateSession()}
           disabled={!coststrictUrl || createSessionMutation.isPending}
