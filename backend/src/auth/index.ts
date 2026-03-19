@@ -29,7 +29,7 @@ export function createAuth(db: Database) {
     }
   }
 
-  const baseURL = ENV.AUTH.TRUSTED_ORIGINS.split(',')[0]?.trim() || `http://localhost:${ENV.SERVER.PORT}`
+  const baseURL = `http://localhost:${ENV.SERVER.PORT}`
   
   const auth = betterAuth({
     baseURL,

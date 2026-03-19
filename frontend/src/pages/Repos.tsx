@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { RepoList } from "@/components/repo/RepoList";
 import { AddRepoDialog } from "@/components/repo/AddRepoDialog";
 import { FileBrowserSheet } from "@/components/file-browser/FileBrowserSheet";
@@ -8,6 +9,7 @@ import { Plus, FolderOpen } from "lucide-react";
 import { PendingActionsGroup } from "@/components/notifications/PendingActionsGroup";
 
 export function Repos() {
+  const { t } = useTranslation();
   const [addRepoOpen, setAddRepoOpen] = useState(false);
   const [fileBrowserOpen, setFileBrowserOpen] = useState(false);
 
@@ -33,7 +35,7 @@ export function Repos() {
           </Button>
           <Button onClick={() => setAddRepoOpen(true)} size="sm">
             <Plus className="w-4 h-4 mr-1" />
-            Repo
+            {t('repos.title')}
           </Button>
           <Header.Language />
           <Header.Settings />
@@ -48,7 +50,7 @@ export function Repos() {
         isOpen={fileBrowserOpen}
         onClose={handleCloseFileBrowser}
         basePath=""
-        repoName="Workspace Root"
+        repoName={t('common.workspace')}
       />
     </div>
   );
