@@ -23,6 +23,7 @@ services:
       - HEALTH_CHECK_TIMEOUT_MS=30000
       - MAX_FILE_SIZE_MB=50
       - MAX_UPLOAD_SIZE_MB=50
+      - LOG_LEVEL=${LOG_LEVEL:-info}
       - DEBUG=false
       - AUTH_SECRET=${AUTH_SECRET}
       - AUTH_TRUSTED_ORIGINS=${AUTH_TRUSTED_ORIGINS:-http://localhost:5003}

@@ -205,12 +205,14 @@ class SSEAggregator {
   }
 
   private broadcastToDirectory(directory: string, event: string, data: string): void {
+    let enrichedData = data
     try {
       const parsed = JSON.parse(data) as SSEEvent
       this.handleEvent(directory, parsed)
       this.eventListeners.forEach(listener => {
         try { listener(directory, parsed) } catch { /* ignore listener errors */ }
       })
+      enrichedData = JSON.stringify({ ...parsed, directory })
     } catch {
       // Ignore parse errors
     }
@@ -218,7 +220,7 @@ class SSEAggregator {
     this.clients.forEach((client) => {
       if (client.directories.has(directory)) {
         try {
-          client.callback(event, data)
+          client.callback(event, enrichedData)
         } catch (error) {
           logger.error(`Failed to send to client ${client.id}:`, error)
         }

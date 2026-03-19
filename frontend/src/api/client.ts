@@ -1,4 +1,4 @@
-import type { paths } from './openapi-types'
+import type { paths, components } from './openapi-types'
 import { fetchWrapper } from './fetchWrapper'
 
 type SessionListResponse = paths['/session']['get']['responses']['200']['content']['application/json']
@@ -195,6 +195,12 @@ export class CoStrictClient {
   async rejectQuestion(requestID: string) {
     return fetchWrapper(`${this.baseURL}/question/${requestID}/reject`, {
       method: 'POST',
+      params: this.getParams(),
+    })
+  }
+
+  async listPendingPermissions() {
+    return fetchWrapper<components['schemas']['PermissionRequest'][]>(`${this.baseURL}/permission`, {
       params: this.getParams(),
     })
   }

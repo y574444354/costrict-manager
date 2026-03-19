@@ -134,6 +134,7 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
   const [permissionsBySession, setPermissionsBySession] = useState<PermissionsBySession>({})
   const [questionsBySession, setQuestionsBySession] = useState<QuestionsBySession>({})
   const [showPermissionDialog, setShowPermissionDialog] = useState(true)
+  const sessionDirectoryMapRef = useRef<Map<string, string>>(new Map())
 
   const clientsRef = useRef<Map<string, CoStrictClient>>(new Map())
   const prevPermissionCountRef = useRef(0)
@@ -201,16 +202,19 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
 
   const getClient = useCallback((sessionID: string): CoStrictClient | null => {
     const result = findSessionInCache(sessionID)
-    if (!result) return null
+    const directory = result?.directory ?? sessionDirectoryMapRef.current.get(sessionID)
+    const url = result?.url ?? COSTRICT_API_ENDPOINT
 
-    const clientKey = `${result.url}|${result.directory}`
+    if (!directory) return null
+
+    const clientKey = `${url}|${directory}`
     let client = clientsRef.current.get(clientKey)
     if (!client) {
       if (clientsRef.current.size >= MAX_CACHED_CLIENTS) {
         const firstKey = clientsRef.current.keys().next().value
         if (firstKey) clientsRef.current.delete(firstKey)
       }
-      client = new CoStrictClient(result.url, result.directory)
+      client = new CoStrictClient(url, directory)
       clientsRef.current.set(clientKey, client)
     }
     return client
@@ -347,27 +351,42 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
     for (const directory of uniqueDirectories) {
       try {
         const client = new CoStrictClient(COSTRICT_API_ENDPOINT, directory)
-        const pendingQuestions = await client.listPendingQuestions()
-        if (pendingQuestions && pendingQuestions.length > 0) {
-          pendingQuestions.forEach(addQuestion)
+        const [pendingPermissions, pendingQuestions] = await Promise.allSettled([
+          client.listPendingPermissions(),
+          client.listPendingQuestions(),
+        ])
+        if (pendingPermissions.status === 'fulfilled' && pendingPermissions.value.length > 0) {
+          pendingPermissions.value.forEach(permission => {
+            sessionDirectoryMapRef.current.set(permission.sessionID, directory)
+            addPermission(permission)
+          })
+        }
+        if (pendingQuestions.status === 'fulfilled' && pendingQuestions.value.length > 0) {
+          pendingQuestions.value.forEach(question => {
+            sessionDirectoryMapRef.current.set(question.sessionID, directory)
+            addQuestion(question)
+          })
         }
       } catch (error) {
         if (import.meta.env.DEV) {
-          console.warn(`Failed to fetch pending questions for ${directory}:`, error)
+          console.warn(`Failed to fetch pending data for ${directory}:`, error)
         }
       }
     }
-  }, [repos, addQuestion])
+  }, [repos, addPermission, addQuestion])
 
   useEffect(() => {
     const handleSSEMessage = (data: unknown) => {
       if (!data || typeof data !== 'object' || !('type' in data)) return
       
-      const event = data as SSEEvent
+      const event = data as SSEEvent & { directory?: string }
+      const directory = 'directory' in event ? (event.directory as string | undefined) : undefined
       
       switch (event.type) {
         case 'permission.asked':
           if ('permission' in event.properties && 'sessionID' in event.properties) {
+            const sessionID = event.properties.sessionID as string
+            if (directory) sessionDirectoryMapRef.current.set(sessionID, directory)
             addPermission(event.properties as PermissionRequest)
           }
           break
@@ -381,6 +400,8 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
           break
         case 'question.asked':
           if ('questions' in event.properties && 'sessionID' in event.properties && 'id' in event.properties) {
+            const sessionID = event.properties.sessionID as string
+            if (directory) sessionDirectoryMapRef.current.set(sessionID, directory)
             addQuestion(event.properties as QuestionRequest)
           }
           break

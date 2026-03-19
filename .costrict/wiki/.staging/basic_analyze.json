@@ -1,0 +1,62 @@
+{
+  "project": {
+    "name": "claude-mem",
+    "version": "10.5.5",
+    "description": "Claude Code插件，提供跨会话的持久记忆功能",
+    "type": "claude-code-plugin",
+    "license": "AGPL-3.0"
+  },
+  "architecture": {
+    "type": "plugin-system",
+    "components": [
+      "lifecycle-hooks",
+      "worker-service",
+      "sqlite-database",
+      "chroma-vector-db",
+      "react-viewer-ui",
+      "mcp-tools"
+    ]
+  },
+  "tech_stack": {
+    "primary": ["TypeScript", "Node.js", "ESM"],
+    "runtime": "Bun",
+    "backend": ["Express", "SQLite3", "Chroma"],
+    "frontend": ["React", "React DOM"],
+    "ai_sdk": "@anthropic-ai/claude-agent-sdk",
+    "mcp": "@modelcontextprotocol/sdk",
+    "testing": "bun test"
+  },
+  "scale": {
+    "size": "large",
+    "complexity": "high",
+    "lines_of_code_estimate": 15000,
+    "test_files": 60
+  },
+  "key_features": [
+    "5个生命周期钩子(SessionStart/UserPromptSubmit/PostToolUse/Summary/SessionEnd)",
+    "AI观察压缩与摘要",
+    "语义搜索与向量嵌入",
+    "渐进式上下文披露",
+    "MCP搜索工具集成",
+    "React查看器UI",
+    "隐私标签过滤",
+    "OpenClaw Gateway支持"
+  ],
+  "directories": {
+    "source": "src/",
+    "hooks": "src/hooks/",
+    "services": "src/services/",
+    "sqlite": "src/services/sqlite/",
+    "worker": "src/services/worker/",
+    "ui": "src/ui/viewer/",
+    "sdk": "src/sdk/",
+    "tests": "tests/",
+    "plugin": "plugin/",
+    "docs": "docs/"
+  },
+  "build": {
+    "system": "esbuild",
+    "output": "dist/",
+    "plugin_output": "plugin/"
+  }
+}

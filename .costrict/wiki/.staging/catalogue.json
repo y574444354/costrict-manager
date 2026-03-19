@@ -1,0 +1,608 @@
+[
+  {
+    "title": "1、项目概述与核心价值",
+    "prompt": "生成Claude-mem项目的全面概述文档。介绍项目作为Claude Code跨会话持久记忆插件的核心价值定位，详细说明其解决的痛点：AI对话会话间的上下文丢失问题。阐述项目的技术栈组成(TypeScript/ESM、Bun、Express、SQLite3、Chroma、React)、架构特点(5生命周期钩子+Worker服务+向量数据库)和目标用户群体(Claude Code重度使用者、开发团队)。说明核心功能：AI观察压缩、语义搜索、渐进式上下文披露、隐私标签控制。包含典型使用场景示例和与原生Claude Code记忆的对比优势。",
+    "sections": [
+      {
+        "title": "introduction",
+        "name": "项目简介",
+        "prompt": "介绍claude-mem项目的背景、目标和解决的问题。说明为什么需要跨会话记忆，以及该项目如何填补Claude Code的空白。"
+      },
+      {
+        "title": "core-value",
+        "name": "核心价值",
+        "prompt": "详细阐述项目的核心价值：会话间记忆持久化、AI观察的智能压缩、基于语义的搜索能力、渐进式上下文披露机制。"
+      },
+      {
+        "title": "tech-stack",
+        "name": "技术栈概览",
+        "prompt": "介绍项目使用的技术栈：TypeScript/Node.js/ESM作为基础，Bun作为运行时，Express提供API服务，SQLite3存储结构化数据，Chroma提供向量搜索，React构建查看器UI。"
+      },
+      {
+        "title": "use-cases",
+        "name": "典型使用场景",
+        "prompt": "列举典型使用场景：多会话项目开发、长期项目维护、知识积累与复用、团队协作记忆共享。"
+      }
+    ]
+  },
+  {
+    "title": "2、快速开始与安装配置",
+    "prompt": "生成claude-mem的快速开始指南。详细说明安装流程：前提条件(Bun、Node.js、uv)、克隆仓库、安装依赖、构建插件、安装到Claude Code。配置说明：settings.json配置文件结构、关键配置项说明、环境变量设置。基础使用流程：启动Worker服务、使用搜索技能、查看React UI界面。包含常见问题的排查步骤和验证安装成功的方法。",
+    "sections": [
+      {
+        "title": "prerequisites",
+        "name": "前提条件",
+        "prompt": "列出安装claude-mem所需的前提条件：Bun运行时、Node.js、uv(Python包管理器)、Claude Code环境。"
+      },
+      {
+        "title": "installation",
+        "name": "安装步骤",
+        "prompt": "提供详细的安装步骤：克隆仓库、运行安装脚本、构建插件、安装到Claude Code插件目录。"
+      },
+      {
+        "title": "configuration",
+        "name": "基础配置",
+        "prompt": "说明settings.json配置文件的位置(~/.claude-mem/settings.json)、默认配置项、自定义选项(端口设置、模型选择、搜索偏好)。"
+      },
+      {
+        "title": "first-run",
+        "name": "首次运行",
+        "prompt": "指导用户完成首次运行：启动Worker、验证状态、执行首次搜索、访问查看器UI。"
+      }
+    ]
+  },
+  {
+    "title": "3、核心概念与术语体系",
+    "prompt": "生成claude-mem核心概念的详细解释文档。深入解析关键抽象概念：Session(会话)的生命周期管理、Observation(观察)的数据结构和类型(observation/action/result/user_message/compressed)、Summary(摘要)的生成机制、Context(上下文)的构建和披露策略。说明5个生命周期钩子(SessionStart、UserPromptSubmit、PostToolUse、Summary、SessionEnd)的作用和触发时机。解释隐私标签系统(<private>标签的工作原理)和渐进式上下文披露(token预算管理)。",
+    "sections": [
+      {
+        "title": "session",
+        "name": "会话(Session)",
+        "prompt": "解释会话概念：会话的创建、生命周期、状态管理、与会话相关的数据表结构(src/services/sqlite/sessions/)。"
+      },
+      {
+        "title": "observation",
+        "name": "观察(Observation)",
+        "prompt": "详细说明观察概念：观察的数据结构(src/services/sqlite/observations/types.ts)、不同类型(observation/action/result/user_message/compressed)、存储和检索机制。"
+      },
+      {
+        "title": "summary",
+        "name": "摘要(Summary)",
+        "prompt": "解释摘要机制：摘要的生成时机、数据结构(src/services/sqlite/summaries/types.ts)、与会话的关系、存储实现。"
+      },
+      {
+        "title": "lifecycle-hooks",
+        "name": "生命周期钩子",
+        "prompt": "详细说明5个生命周期钩子：SessionStart、UserPromptSubmit、PostToolUse、Summary、SessionEnd的触发时机、处理逻辑和相互关系。"
+      },
+      {
+        "title": "privacy-tags",
+        "name": "隐私标签系统",
+        "prompt": "解释隐私标签系统：<private>标签的工作原理、Tag-stripping实现(src/utils/tag-stripping.ts)、用户级隐私控制机制。"
+      },
+      {
+        "title": "context-disclosure",
+        "name": "渐进式上下文披露",
+        "prompt": "说明渐进式上下文披露机制：TokenCalculator的预算管理、ContextBuilder的披露策略、相关性的优先级排序。"
+      }
+    ]
+  },
+  {
+    "title": "4、配置指南与高级设置",
+    "prompt": "生成claude-mem的全面配置指南文档。详细说明settings.json的完整配置选项：Worker端口设置、AI模型配置(Claude/OpenRouter/Gemini)、搜索偏好设置、上下文披露参数、隐私控制选项。环境变量配置：CLAUdemem_*系列环境变量的作用。配置文件的加载机制(SettingsManager.ts的实现)。高级配置场景：多项目配置、团队协作设置、性能调优参数。配置验证和错误处理机制。",
+    "sections": [
+      {
+        "title": "settings-json",
+        "name": "Settings.json配置",
+        "prompt": "详细说明settings.json的完整配置结构：位置(~/.claude-mem/settings.json)、默认配置、所有可配置项的说明。"
+      },
+      {
+        "title": "ai-models",
+        "name": "AI模型配置",
+        "prompt": "说明AI模型配置选项：Claude SDK配置、OpenRouter集成(OpenRouterAgent.ts)、Gemini集成(GeminiAgent.ts)、模型选择策略。"
+      },
+      {
+        "title": "search-preferences",
+        "name": "搜索偏好设置",
+        "prompt": "解释搜索相关配置：默认搜索策略、结果数量限制、过滤器设置、Chroma/SQLite切换选项。"
+      },
+      {
+        "title": "context-settings",
+        "name": "上下文披露配置",
+        "prompt": "说明上下文披露配置：Token预算设置、披露深度、相关性阈值、时间范围偏好。"
+      },
+      {
+        "title": "environment-variables",
+        "name": "环境变量",
+        "prompt": "列举可用的环境变量：CLAUdemem_*系列变量的作用、优先级(环境变量vs配置文件)、使用场景。"
+      }
+    ]
+  },
+  {
+    "title": "5、系统架构总览",
+    "prompt": "生成claude-mem系统架构的全面分析文档。详细阐述整体架构设计：插件层(5生命周期钩子)->Worker服务层(Express API)->数据层(SQLite+Chroma)->UI层(React)的分层架构。说明各组件的职责边界和交互关系。数据流分析：从钩子捕获观察->Worker处理->数据库存储->搜索检索->上下文披露的完整流程。架构模式识别：插件模式、服务化架构、策略模式(搜索)、观察者模式(SSE)。扩展点设计：如何添加新的生命周期钩子、新的搜索策略、新的MCP工具。",
+    "sections": [
+      {
+        "title": "architecture-overview",
+        "name": "架构概览",
+        "prompt": "提供系统整体架构图和说明：分层架构(插件层、服务层、数据层、UI层)、各层职责、层间通信机制。"
+      },
+      {
+        "title": "component-interaction",
+        "name": "组件交互关系",
+        "prompt": "详细说明各组件间的交互：钩子与Worker的通信、Worker与数据库的交互、UI与Worker的SSE通信、MCP工具与Worker的API调用。"
+      },
+      {
+        "title": "data-flow",
+        "name": "数据流分析",
+        "prompt": "追踪完整数据流：观察捕获->处理->存储->索引->搜索->披露的端到端流程。"
+      },
+      {
+        "title": "design-patterns",
+        "name": "设计模式应用",
+        "prompt": "识别架构中使用的设计模式：插件模式(生命周期钩子)、策略模式(搜索策略)、观察者模式(SSE广播)、工厂模式(Agent创建)。"
+      },
+      {
+        "title": "extension-points",
+        "name": "扩展点设计",
+        "prompt": "说明系统的扩展点：如何添加新钩子、新搜索策略、新MCP工具、新UI组件。"
+      }
+    ]
+  },
+    {
+    "title": "6、生命周期钩子系统",
+    "prompt": "生成生命周期钩子系统的深度技术文档。详细分析5个钩子的实现机制：SessionStart钩子的会话初始化逻辑、UserPromptSubmit钩子的提示处理、PostToolUse钩子的工具使用捕获、Summary钩子的摘要生成触发、SessionEnd钩子的会话清理。核心实现文件分析：src/hooks/hook-response.ts的协议设计、plugin/scripts/*-hook.js的构建输出。钩子与Worker的通信协议：HTTP请求格式、数据序列化、错误处理。钩子的执行顺序和依赖关系。自定义钩子的开发指南。",
+    "sections": [
+      {
+        "title": "hook-overview",
+        "name": "钩子系统概述",
+        "prompt": "介绍生命周期钩子系统的设计理念、5个钩子的整体架构、钩子在Claude Code中的集成方式。"
+      },
+      {
+        "title": "session-start-hook",
+        "name": "SessionStart钩子",
+        "prompt": "详细分析SessionStart钩子：触发时机、会话初始化逻辑、创建新会话的数据库操作(src/services/sqlite/sessions/create.ts)。"
+      },
+      {
+        "title": "user-prompt-hook",
+        "name": "UserPromptSubmit钩子",
+        "prompt": "分析UserPromptSubmit钩子：用户提示捕获、隐私标签过滤、数据序列化、发送到Worker的流程。"
+      },
+      {
+        "title": "post-tool-hook",
+        "name": "PostToolUse钩子",
+        "prompt": "说明PostToolUse钩子：工具使用结果捕获、观察类型识别、压缩决策逻辑。"
+      },
+      {
+        "title": "summary-hook",
+        "name": "Summary钩子",
+        "prompt": "解释Summary钩子：摘要触发条件、调用SDK生成摘要、存储摘要数据。"
+      },
+      {
+        "title": "session-end-hook",
+        "name": "SessionEnd钩子",
+        "prompt": "分析SessionEnd钩子：会话结束清理、数据同步、资源释放、SessionCleanupHelper的作用。"
+      },
+      {
+        "title": "hook-protocol",
+        "name": "钩子通信协议",
+        "prompt": "详细说明钩子与Worker的通信协议：HTTP请求格式、数据格式(src/hooks/hook-response.ts)、错误处理、超时机制。"
+      },
+      {
+        "title": "custom-hooks",
+        "name": "自定义钩子开发",
+        "prompt": "提供开发新钩子的指南：钩子接口设计、构建配置、测试方法、集成步骤。"
+      }
+    ]
+  },
+  {
+    "title": "7、Worker服务架构",
+    "prompt": "生成Worker服务架构的深度技术文档。核心文件分析：src/services/worker-service.ts的完整实现，包括Worker生命周期管理、Express服务器设置、进程管理、健康检查。Worker启动流程：ensureWorkerStarted函数的实现、端口管理、进程锁机制(getWorkerSpawnLockPath)。服务组件详解：Server.ts的Express配置、Middleware.ts的中间件栈、ErrorHandler.ts的错误处理。进程管理：ProcessRegistry的实现、Bun进程管理、优雅关闭机制(GracefulShutdown)。健康监控：HealthMonitor的实现、状态检查端点、自动重启逻辑。",
+    "sections": [
+      {
+        "title": "worker-overview",
+        "name": "Worker服务概述",
+        "prompt": "介绍Worker服务的定位和职责：作为插件后端提供API服务、管理数据库连接、协调各组件工作、Bun进程管理。"
+      },
+      {
+        "title": "worker-service-ts",
+        "name": "worker-service.ts核心实现",
+        "prompt": "深度分析worker-service.ts：WorkerService类结构、初始化流程、main函数逻辑、exitWithStatus退出策略。"
+      },
+      {
+        "title": "startup-flow",
+        "name": "Worker启动流程",
+        "prompt": "详细说明Worker启动过程：ensureWorkerStarted函数、端口检测、进程锁机制、健康检查、启动错误处理。"
+      },
+      {
+        "title": "express-server",
+        "name": "Express服务器配置",
+        "prompt": "分析Express服务器实现：Server.ts的端点注册、Middleware.ts的中间件链(CORS、JSON解析、错误处理)、路由结构。"
+      },
+      {
+        "title": "process-management",
+        "name": "进程管理",
+        "prompt": "说明进程管理机制：ProcessRegistry的实现、Bun子进程管理、进程间通信、进程监控。"
+      },
+      {
+        "title": "health-monitoring",
+        "name": "健康监控",
+        "prompt": "分析健康监控系统：HealthMonitor的实现、健康检查端点、状态报告、自动恢复机制。"
+      },
+      {
+        "title": "graceful-shutdown",
+        "name": "优雅关闭机制",
+        "prompt": "解释优雅关闭实现：GracefulShutdown的处理流程、资源清理、数据库连接关闭、进程退出码策略。"
+      }
+    ]
+  },
+  {
+    "title": "8、SQLite数据层架构",
+    "prompt": "生成SQLite数据层的深度技术文档。数据库架构分析：ClaudeMemDatabase类的实现(src/services/sqlite/Database.ts)、表结构设计(会话表、观察表、摘要表、时间线表)。数据模型详解：Session类型(src/services/sqlite/sessions/types.ts)、Observation类型(src/services/sqlite/observations/types.ts)、Summary类型(src/services/sqlite/summaries/types.ts)。CRUD操作实现：会话的创建/查询/更新、观察的存储/检索、摘要的管理。数据库管理：DatabaseManager的单例模式、连接池管理、事务处理、架构迁移和修复(repairMalformedSchema)。性能优化：索引设计、查询优化、批量导入实现(src/services/sqlite/import/bulk.ts)。",
+    "sections": [
+      {
+        "title": "sqlite-overview",
+        "name": "SQLite层概述",
+        "prompt": "介绍SQLite数据层的作用：结构化数据存储、会话/观察/摘要的持久化、快速检索、与Chroma的互补关系。"
+      },
+      {
+        "title": "database-architecture",
+        "name": "数据库架构",
+        "prompt": "详细分析数据库架构：ClaudeMemDatabase类实现、表结构设计、关系模型、索引策略。"
+      },
+      {
+        "title": "data-models",
+        "name": "数据模型",
+        "prompt": "说明核心数据模型：Session类型定义、Observation类型及子类型、Summary类型、Prompt类型。"
+      },
+      {
+        "title": "crud-operations",
+        "name": "CRUD操作实现",
+        "prompt": "分析CRUD操作：会话的create/get/update、观察的store/get/files查询、摘要的store/get/recent操作。"
+      },
+      {
+        "title": "session-store",
+        "name": "会话存储",
+        "prompt": "详细说明SessionStore的实现：会话状态管理、活跃会话跟踪、会话元数据存储。"
+      },
+      {
+        "title": "database-manager",
+        "name": "数据库管理",
+        "prompt": "分析DatabaseManager：单例模式实现、连接管理、架构迁移、malformed schema修复机制。"
+      },
+      {
+        "title": "performance-optimization",
+        "name": "性能优化",
+        "prompt": "说明性能优化策略：索引设计、查询优化、批量导入(bulk.ts)、连接池管理。"
+      }
+    ]
+  },
+  {
+    "title": "9、Chroma向量数据库与语义搜索",
+    "prompt": "生成Chroma向量数据库与语义搜索的深度技术文档。Chroma集成架构：ChromaSync类的实现(src/services/sync/ChromaSync.ts)、向量嵌入生成、集合管理。语义搜索实现：向量相似度计算、嵌入模型选择、搜索结果排序。混合搜索策略：HybridSearchStrategy的实现(src/services/worker/search/strategies/HybridSearchStrategy.ts)、向量搜索与关键词搜索的结合。Chroma与SQLite的同步：数据同步机制、一致性维护、故障恢复。MCP管理：ChromaMcpManager的实现、MCP服务器集成。性能考虑：向量索引、查询优化、缓存策略。",
+    "sections": [
+      {
+        "title": "chroma-overview",
+        "name": "Chroma集成概述",
+        "prompt": "介绍Chroma的作用：语义搜索能力、向量嵌入存储、与SQLite的互补、语义相似度计算。"
+      },
+      {
+        "title": "chroma-sync",
+        "name": "ChromaSync实现",
+        "prompt": "深度分析ChromaSync类：向量嵌入生成、集合管理、数据同步流程、错误处理。"
+      },
+      {
+        "title": "embedding-generation",
+        "name": "向量嵌入生成",
+        "prompt": "说明嵌入生成机制：嵌入模型选择、文本向量化、嵌入缓存策略、批量处理。"
+      },
+      {
+        "title": "semantic-search",
+        "name": "语义搜索实现",
+        "prompt": "分析语义搜索：向量相似度计算、ChromaSearchStrategy实现、结果排序、相关性评分。"
+      },
+      {
+        "title": "hybrid-strategy",
+        "name": "混合搜索策略",
+        "prompt": "详细说明HybridSearchStrategy：向量搜索与关键词搜索的融合、权重调整、结果合并策略。"
+      },
+      {
+        "title": "chroma-mcp",
+        "name": "Chroma MCP管理",
+        "prompt": "分析ChromaMcpManager：MCP服务器集成、连接管理、工具暴露、配置管理。"
+      },
+      {
+        "title": "sync-mechanism",
+        "name": "数据同步机制",
+        "prompt": "说明Chroma与SQLite的同步：同步触发时机、数据一致性、故障恢复、批量同步。"
+      }
+    ]
+  },
+  {
+    "title": "10、搜索系统架构",
+    "prompt": "生成搜索系统架构的深度技术文档。搜索架构总览：SearchOrchestrator的协调作用、搜索流程的完整链路。策略模式实现：SearchStrategy基类(src/services/worker/search/strategies/SearchStrategy.ts)、SQLiteSearchStrategy、ChromaSearchStrategy、HybridSearchStrategy的具体实现。过滤器系统：ProjectFilter、DateFilter、TypeFilter的实现(src/services/worker/search/filters/)、过滤器链的组合逻辑。搜索结果处理：ResultFormatter的格式化、TimelineBuilder的时间线构建、分页实现(PaginationHelper)。搜索API：SearchManager的接口设计、MCP搜索工具暴露。搜索优化：查询解析、相关性排序、结果去重。",
+    "sections": [
+      {
+        "title": "search-overview",
+        "name": "搜索系统概述",
+        "prompt": "介绍搜索系统的整体架构：SearchOrchestrator协调、多策略支持、过滤器链、结果格式化。"
+      },
+      {
+        "title": "search-orchestrator",
+        "name": "SearchOrchestrator实现",
+        "prompt": "深度分析SearchOrchestrator：搜索流程协调、策略选择、过滤器应用、结果聚合。"
+      },
+      {
+        "title": "search-strategies",
+        "name": "搜索策略模式",
+        "prompt": "详细说明策略模式实现：SearchStrategy接口、SQLiteSearchStrategy、ChromaSearchStrategy、HybridSearchStrategy。"
+      },
+      {
+        "title": "filter-system",
+        "name": "过滤器系统",
+        "prompt": "分析过滤器实现：ProjectFilter、DateFilter、TypeFilter、过滤器组合逻辑、链式调用。"
+      },
+      {
+        "title": "result-processing",
+        "name": "搜索结果处理",
+        "prompt": "说明结果处理流程：ResultFormatter格式化、TimelineBuilder时间线、分页逻辑、去重机制。"
+      },
+      {
+        "title": "search-api",
+        "name": "搜索API设计",
+        "prompt": "分析SearchManager：API接口、参数校验、错误处理、性能监控。"
+      }
+    ]
+  },
+  {
+    "title": "11、上下文生成与渐进式披露",
+    "prompt": "生成上下文生成与渐进式披露机制的深入技术文档。上下文架构：ContextBuilder的实现(src/services/context/ContextBuilder.ts)、上下文生成流程、多阶段构建过程。Token管理：TokenCalculator的实现(src/services/context/TokenCalculator.ts)、token预算分配、使用量预估。上下文组件：HeaderRenderer、TimelineRenderer、SummaryRenderer、FooterRenderer的实现(src/services/context/sections/)。格式化输出：ColorFormatter、MarkdownFormatter的实现(src/services/context/formatters/)。渐进式披露策略：基于相关性的优先级排序、时间衰减算法、重要性评分。上下文配置：ContextConfigLoader的实现、配置项解析、动态调整。",
+    "sections": [
+      {
+        "title": "context-overview",
+        "name": "上下文系统概述",
+        "prompt": "介绍上下文生成系统：ContextBuilder职责、上下文在Claude会话中的作用、生成流程概览。"
+      },
+      {
+        "title": "context-builder",
+        "name": "ContextBuilder实现",
+        "prompt": "深度分析ContextBuilder：构建流程、组件协调、缓存策略、性能优化。"
+      },
+      {
+        "title": "token-calculator",
+        "name": "TokenCalculator实现",
+        "prompt": "详细说明TokenCalculator：token预算管理、使用量计算、分配策略、限制处理。"
+      },
+      {
+        "title": "context-sections",
+        "name": "上下文组件",
+        "prompt": "分析上下文组件：HeaderRenderer页眉、TimelineRenderer时间线、SummaryRenderer摘要、FooterRenderer页脚。"
+      },
+      {
+        "title": "formatters",
+        "name": "格式化器",
+        "prompt": "说明格式化实现：ColorFormatter彩色输出、MarkdownFormatter Markdown格式、格式选择逻辑。"
+      },
+      {
+        "title": "disclosure-strategy",
+        "name": "渐进式披露策略",
+        "prompt": "解释披露策略：相关性评分、时间衰减、重要性权重、动态调整机制。"
+      },
+      {
+        "title": "context-config",
+        "name": "上下文配置",
+        "prompt": "分析ContextConfigLoader：配置加载、默认值处理、用户偏好、运行时调整。"
+      }
+    ]
+  },
+  {
+    "title": "12、React查看器UI",
+    "prompt": "生成React查看器UI的深入技术文档。UI架构分析：App.tsx的主组件结构(src/ui/viewer/App.tsx)、组件层次关系、状态管理。核心组件详解：Feed组件的数据展示、ObservationCard/PromptCard/SummaryCard的实现、Header的导航、ContextSettingsModal的配置界面。自定义Hooks：useSSE的Server-Sent Events实现、useSettings的配置管理、useStats的统计信息、usePagination的分页逻辑、useTheme的主题切换。数据流管理：SSE实时更新机制、本地状态与服务器状态同步、乐观更新策略。主题系统：明暗主题切换、CSS变量、主题持久化。UI性能优化：虚拟滚动、懒加载、记忆化组件。",
+    "sections": [
+      {
+        "title": "ui-overview",
+        "name": "UI架构概述",
+        "prompt": "介绍React查看器UI的整体架构：组件层次、状态管理、与Worker的通信方式、技术栈(React hooks)。"
+      },
+      {
+        "title": "app-component",
+        "name": "App.tsx主组件",
+        "prompt": "深度分析App.tsx：组件结构、状态定义、副作用管理、子组件协调、事件处理。"
+      },
+      {
+        "title": "core-components",
+        "name": "核心UI组件",
+        "prompt": "详细说明核心组件：Feed、ObservationCard、PromptCard、SummaryCard、Header、LogsModal、ContextSettingsModal。"
+      },
+      {
+        "title": "custom-hooks",
+        "name": "自定义Hooks",
+        "prompt": "分析自定义Hooks：useSSE(Server-Sent Events)、useSettings、useStats、usePagination、useTheme的实现。"
+      },
+      {
+        "title": "sse-communication",
+        "name": "SSE通信机制",
+        "prompt": "说明SSE实现：实时数据推送、连接管理、重连机制、事件类型、数据解析。"
+      },
+      {
+        "title": "theme-system",
+        "name": "主题系统",
+        "prompt": "解释主题系统：useTheme实现、明暗切换、CSS变量、localStorage持久化、系统偏好检测。"
+      },
+      {
+        "title": "ui-performance",
+        "name": "UI性能优化",
+        "prompt": "说明性能优化：useMemo/useCallback使用、组件记忆化、不必要的重渲染避免、大数据列表处理。"
+      }
+    ]
+  },
+  {
+    "title": "13、MCP工具与技能开发",
+    "prompt": "生成MCP工具与技能开发的深入技术文档。MCP架构：Model Context Protocol集成、@modelcontextprotocol/sdk的使用、技能注册机制。核心技能详解：mem-search技能(plugin/skills/mem-search/SKILL.md)的搜索流程、make-plan技能的规划功能、do技能的执行功能、smart-explore技能的探索功能。技能实现：SKILL.md规范、工具暴露、参数定义、响应格式。工具开发指南：如何创建新技能、工具函数编写、错误处理、文档编写。MCP服务器管理：MCP连接生命周期、工具发现、调用处理。技能最佳实践：工作流设计、参数校验、结果格式化、用户引导。",
+    "sections": [
+      {
+        "title": "mcp-overview",
+        "name": "MCP架构概述",
+        "prompt": "介绍MCP集成：@modelcontextprotocol/sdk使用、技能系统架构、工具暴露机制、与Claude的交互。"
+      },
+      {
+        "title": "mem-search-skill",
+        "name": "mem-search技能",
+        "prompt": "深度分析mem-search技能：3层工作流(Search->Timeline->Fetch)、工具定义、参数设计、使用场景。"
+      },
+      {
+        "title": "make-plan-skill",
+        "name": "make-plan技能",
+        "prompt": "说明make-plan技能：规划工作流程、阶段定义、文档发现、计划生成。"
+      },
+      {
+        "title": "do-skill",
+        "name": "do技能",
+        "prompt": "分析do技能：执行工作流程、子代理协调、计划执行、进度跟踪。"
+      },
+      {
+        "title": "skill-specification",
+        "name": "SKILL.md规范",
+        "prompt": "详细说明SKILL.md格式：Frontmatter、文档结构、示例代码、参数说明、使用指南。"
+      },
+      {
+        "title": "skill-development",
+        "name": "技能开发指南",
+        "prompt": "提供技能开发步骤：创建SKILL.md、定义工具、实现处理逻辑、测试验证、文档完善。"
+      },
+      {
+        "title": "mcp-server",
+        "name": "MCP服务器管理",
+        "prompt": "分析MCP服务器：连接管理、生命周期、工具注册、调用处理、错误恢复。"
+      }
+    ]
+  },
+  {
+    "title": "14、SDK与Agent系统",
+    "prompt": "生成SDK与Agent系统的深入技术文档。SDK架构：src/sdk/index.ts的模块结构、parser.ts的解析功能、prompts.ts的提示模板。Agent系统：SDKAgent的实现(src/services/worker/SDKAgent.ts)、OpenRouterAgent的集成、GeminiAgent的支持。观察广播：ObservationBroadcaster的实现(src/services/worker/agents/ObservationBroadcaster.ts)、观察分发机制。响应处理：ResponseProcessor的实现、流式响应处理、错误恢复。Agent协调：多Agent策略、 fallback机制(FallbackErrorHandler)、负载均衡。Prompt管理：Prompts.ts的实现、模板系统、动态提示生成。",
+    "sections": [
+      {
+        "title": "sdk-overview",
+        "name": "SDK架构概述",
+        "prompt": "介绍SDK设计：模块结构、核心功能、与Worker的集成、对外暴露接口。"
+      },
+      {
+        "title": "sdk-modules",
+        "name": "SDK模块分析",
+        "prompt": "分析SDK模块：index.ts入口、parser.ts数据解析、prompts.ts提示模板、类型定义。"
+      },
+      {
+        "title": "sdk-agent",
+        "name": "SDKAgent实现",
+        "prompt": "深度分析SDKAgent：职责、初始化、API调用、错误处理、与Claude Agent SDK集成。"
+      },
+      {
+        "title": "openrouter-agent",
+        "name": "OpenRouterAgent",
+        "prompt": "说明OpenRouterAgent：OpenRouter API集成、模型路由、请求处理、响应解析。"
+      },
+      {
+        "title": "gemini-agent",
+        "name": "GeminiAgent",
+        "prompt": "分析GeminiAgent：Google Gemini集成、API调用、特性支持、与其他Agent对比。"
+      },
+      {
+        "title": "observation-broadcaster",
+        "name": "观察广播系统",
+        "prompt": "详细说明ObservationBroadcaster：观察分发、事件广播、SSE推送、订阅管理。"
+      },
+      {
+        "title": "response-processor",
+        "name": "响应处理",
+        "prompt": "分析ResponseProcessor：响应解析、流式处理、错误恢复、数据格式化。"
+      },
+      {
+        "title": "agent-coordination",
+        "name": "Agent协调机制",
+        "prompt": "说明多Agent协调：策略选择、FallbackErrorHandler、负载均衡、故障转移。"
+      }
+    ]
+  },
+  {
+    "title": "15、隐私安全与标签过滤",
+    "prompt": "生成隐私安全与标签过滤的深入技术文档。隐私架构：标签系统设计、<private>标签语义、用户级隐私控制。标签剥离：tag-stripping.ts的实现(src/utils/tag-stripping.ts)、剥离算法、边界情况处理。隐私检查：PrivacyCheckValidator的实现(src/services/worker/validation/PrivacyCheckValidator.ts)、验证流程、错误报告。数据保护：存储前的过滤、传输中的保护、日志脱敏。合规考虑：GDPR合规、数据保留策略、用户删除权。安全最佳实践：配置安全、访问控制、审计日志。",
+    "sections": [
+      {
+        "title": "privacy-overview",
+        "name": "隐私系统概述",
+        "prompt": "介绍隐私设计理念：用户控制、最小权限、透明性、<private>标签机制。"
+      },
+      {
+        "title": "tag-stripping",
+        "name": "标签剥离机制",
+        "prompt": "深度分析tag-stripping.ts：剥离算法、正则表达式、嵌套标签处理、性能优化。"
+      },
+      {
+        "title": "privacy-validator",
+        "name": "PrivacyCheckValidator",
+        "prompt": "详细说明PrivacyCheckValidator：验证流程、错误检测、报告生成、处理建议。"
+      },
+      {
+        "title": "data-protection",
+        "name": "数据保护机制",
+        "prompt": "分析数据保护：存储前过滤、传输加密、内存安全、日志脱敏。"
+      },
+      {
+        "title": "user-control",
+        "name": "用户控制",
+        "prompt": "说明用户控制：隐私设置、数据查看、删除权利、导出功能。"
+      },
+      {
+        "title": "security-best-practices",
+        "name": "安全最佳实践",
+        "prompt": "提供安全建议：配置安全、访问控制、定期审计、更新策略。"
+      }
+    ]
+  },
+  {
+    "title": "16、开发指南与贡献规范",
+    "prompt": "生成开发指南与贡献规范的全面文档。开发环境搭建：本地开发环境配置、IDE设置、调试配置。构建系统：esbuild配置、构建流程、插件输出结构。测试策略：bun test使用、测试文件组织(60+测试文件)、单元测试/集成测试编写。代码规范：TypeScript编码规范、ESM模块规范、文件命名约定。调试技巧：Worker调试、日志查看、常见错误排查。贡献流程：Issue提交、PR流程、代码审查、变更日志。扩展开发：添加新功能、新钩子、新搜索策略的完整示例。性能优化：构建优化、运行时优化、数据库优化建议。",
+    "sections": [
+      {
+        "title": "dev-environment",
+        "name": "开发环境搭建",
+        "prompt": "说明开发环境：仓库克隆、依赖安装、Bun配置、IDE推荐、调试设置。"
+      },
+      {
+        "title": "build-system",
+        "name": "构建系统",
+        "prompt": "分析构建流程：esbuild配置、TypeScript编译、hooks构建、插件打包、输出结构。"
+      },
+      {
+        "title": "testing",
+        "name": "测试策略",
+        "prompt": "详细说明测试：bun test框架、测试目录结构、单元测试编写、集成测试、Mock使用。"
+      },
+      {
+        "title": "code-standards",
+        "name": "代码规范",
+        "prompt": "说明编码规范：TypeScript规范、ESM模块、命名约定、注释要求、类型定义。"
+      },
+      {
+        "title": "debugging",
+        "name": "调试技巧",
+        "prompt": "提供调试指南：Worker调试方法、日志级别、常见错误、性能分析、内存泄漏排查。"
+      },
+      {
+        "title": "contribution",
+        "name": "贡献流程",
+        "prompt": "说明贡献规范：Issue模板、PR流程、代码审查、文档更新、变更日志(自动生成)。"
+      },
+      {
+        "title": "extension-example",
+        "name": "扩展示例",
+        "prompt": "提供完整示例：添加新生命周期钩子、实现新搜索策略、创建新MCP工具的步骤代码。"
+      },
+      {
+        "title": "performance-tuning",
+        "name": "性能优化",
+        "prompt": "说明优化策略：构建优化、运行时性能、数据库查询优化、缓存策略、内存管理。"
+      }
+    ]
+  }
+]

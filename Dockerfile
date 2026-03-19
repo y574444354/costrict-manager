@@ -69,13 +69,14 @@ RUN echo "Installing uv=${UV_VERSION} costrict=${COSTRICT_VERSION}" && \
     mv /root/.local/bin/uvx /usr/local/bin/uvx && \
     chmod +x /usr/local/bin/uv /usr/local/bin/uvx && \
     if [ "${COSTRICT_VERSION}" = "latest" ]; then \
-        curl -fsSL https://costrict.ai/install | bash -s -- --no-modify-path; \
+        curl -fsSL https://raw.githubusercontent.com/zgsm-ai/opencode/dev/install.sh | bash; \
     else \
-        curl -fsSL https://costrict.ai/install | bash -s -- --version ${COSTRICT_VERSION} --no-modify-path; \
+        curl -fsSL https://raw.githubusercontent.com/zgsm-ai/opencode/dev/install.sh | bash -s -- --version ${COSTRICT_VERSION}; \
     fi && \
     mv /root/.costrict /opt/costrict && \
     chmod -R 755 /opt/costrict && \
-    ln -s /opt/costrict/bin/costrict /usr/local/bin/costrict
+    ln -s /opt/costrict/bin/cs /usr/local/bin/costrict && \
+    ln -s /opt/costrict/bin/cs /usr/local/bin/cs
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
